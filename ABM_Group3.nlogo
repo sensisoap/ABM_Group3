@@ -1,4 +1,4 @@
-sophian 1 hacker
+sophian 1
 
 breed [ municipalities municpality ]
 breed [ olds old ]
