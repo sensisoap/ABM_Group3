@@ -1,5 +1,4 @@
-sophian 1 hacker
-
+globals [ month]
 breed [ municipalities municpality ]
 breed [ olds old ]
 breed [ singles single ]
@@ -8,6 +7,7 @@ breed [ families family ]
 breed [ rec_companies rec_company ]
 
 turtles-own [ waste ]
+
 to setup
   clear-all
   create-olds number_old [
@@ -46,21 +46,24 @@ to setup
     set shape "rec"
     setxy  random-pycor -12
   ]
+  set month 0
   reset-ticks
 end
 
 to go
   if ticks >= 240 [ stop ]
   waste-equation
+  count_months
   tick
 end
 
 
 to waste-equation
   ask turtles [
-    set waste 40 - 0.04 * ticks - exp(-0.01 * ticks) * sin( 0.3 * ticks)
+    set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)
   ]
 end
+
 
 
 
@@ -74,6 +77,10 @@ to spread-out-turtles-evenly
     ask t [ set xcor round x ]
     set x (x + d)
   ]
+end
+
+to count_months
+  set month month + 1
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -97,8 +104,8 @@ GRAPHICS-WINDOW
 16
 -19
 19
-0
-0
+1
+1
 1
 ticks
 30.0
@@ -126,7 +133,7 @@ INPUTBOX
 96
 336
 number_old
-34.0
+5.0
 1
 0
 Number
@@ -180,7 +187,7 @@ true
 false
 "" ""
 PENS
-"wasted" 1.0 0 -16777216 true "" "plot mean [waste] of hhs_old"
+"wasted" 1.0 0 -16777216 true "" "plot mean [waste] of olds"
 
 SLIDER
 18
@@ -191,7 +198,7 @@ number_rec_companies
 number_rec_companies
 0
 10
-8.0
+10.0
 1
 1
 NIL
