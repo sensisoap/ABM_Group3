@@ -1,3 +1,6 @@
+$ cd
+$ cd desktop
+
 breed [ municipalities municpality ]
 breed [ olds old ]
 breed [ singles single ]
