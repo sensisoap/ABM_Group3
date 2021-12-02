@@ -273,6 +273,8 @@ have:
 	*sorting_effeciency
 	*recycling_efficency
 	*capacity
+
+Pesudocode:
 @#$#@#$#@
 default
 true
