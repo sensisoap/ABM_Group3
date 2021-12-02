@@ -1,4 +1,3 @@
-$ cd
 $ cd desktop
 
 breed [ municipalities municpality ]
