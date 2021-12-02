@@ -264,10 +264,6 @@ have:
 	*sorting_effeciency
 	*recycling_efficency
 	*capacity
-
-
-
-hallo hier kommt der pseudocode hin
 @#$#@#$#@
 default
 true
