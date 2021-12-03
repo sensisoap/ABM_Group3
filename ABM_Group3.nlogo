@@ -333,8 +333,10 @@ Initialization:
 
 	Municipality own:
 		Budget
-		
+		desity
+		population distribution
 
+		
 @#$#@#$#@
 default
 true
