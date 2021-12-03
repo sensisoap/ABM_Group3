@@ -1,5 +1,6 @@
 globals [ month]
 breed [ municipalities municpality ]
+breed [ households household ]
 breed [ olds old ]
 breed [ singles single ]
 breed [ couples couple ]
@@ -7,7 +8,7 @@ breed [ families family ]
 breed [ rec_companies rec_company ]
 
 
-turtles-own [ waste ]
+turtles-own [ waste ] ;; anpassen mun & rec kein waste
 
 olds-own [ acceptance_rate_incentives
   perception_recycling
@@ -82,6 +83,7 @@ to go
   if ticks >= 240 [ stop ]
   waste-equation
   count_months
+  try
   tick
 end
 
@@ -93,6 +95,12 @@ to waste-equation
 end
 
 ; test area IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+
+to try ;; all red turtles
+  ask turtles with [ color = yellow ] [ fd 1 ]
+
+end
+
 
 
 ;test area IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
