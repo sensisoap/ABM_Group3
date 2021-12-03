@@ -6,7 +6,35 @@ breed [ couples couple ]
 breed [ families family ]
 breed [ rec_companies rec_company ]
 
+
 turtles-own [ waste ]
+
+olds-own [ acceptance_rate_incentives
+  perception_recycling
+  knowledge_recycling
+  recycling_rate
+]
+
+singles-own [ acceptance_rate_incentives
+  perception_recycling
+  knowledge_recycling
+  recycling_rate
+]
+
+couples-own [ acceptance_rate_incentives
+  perception_recycling
+  knowledge_recycling
+  recycling_rate
+]
+
+families-own [ acceptance_rate_incentives
+  perception_recycling
+  knowledge_recycling
+  recycling_rate
+]
+
+rec_companies-own [] ; to be determined
+
 
 to setup
   clear-all
@@ -64,9 +92,10 @@ to waste-equation
   ]
 end
 
+; test area IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 
-
+;test area IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
 
 
 
@@ -249,8 +278,13 @@ Roadmap:
 - add range for each variable 
 
 
+Households have
+-perception_rate: Describes how important recycling is to the household
+-knowlege_recycle: Describes the knowledge about how to recycle
+-acceptance_rate_incentives: Describes the acceptance of incentives and policies
+-recycling_rate: Is the rate of how well the household seperates the trash
 
-
+What influences What?
 
 
 
