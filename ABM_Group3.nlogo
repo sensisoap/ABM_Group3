@@ -309,6 +309,32 @@ have:
 	*capacity
 
 Pesudocode:
+
+Initialization:
+	
+	Create agents (households) and evenly distribute them random in knowledge space
+
+	Create agent (municipality) in (0,0) of the knowledge space
+
+	Create given amount of agents (recycling companies) and place them on a fixed spot
+
+	Create classes for agent (households):
+		old
+		single
+		couple
+		family
+
+	Households own:
+		waste
+		access to collection infrastructure
+		perception for recycling
+		knowledge of how to recycle
+		acceptance rate for incentives
+
+	Municipality own:
+		Budget
+		
+
 @#$#@#$#@
 default
 true
