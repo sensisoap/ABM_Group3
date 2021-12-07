@@ -1,6 +1,6 @@
-globals [ month]
+globals [ month ]
+
 breed [ municipalities municpality ]
-breed [ households household ]
 breed [ olds old ]
 breed [ singles single ]
 breed [ couples couple ]
@@ -9,32 +9,28 @@ breed [ rec_companies rec_company ]
 
 
 turtles-own [ waste ] ;; anpassen mun & rec kein waste
-
+municipalities-own [ Budget ]
 olds-own [ acceptance_rate_incentives
   perception_recycling
   knowledge_recycling
   recycling_rate
 ]
-
 singles-own [ acceptance_rate_incentives
   perception_recycling
   knowledge_recycling
   recycling_rate
 ]
-
 couples-own [ acceptance_rate_incentives
   perception_recycling
   knowledge_recycling
   recycling_rate
 ]
-
 families-own [ acceptance_rate_incentives
   perception_recycling
   knowledge_recycling
   recycling_rate
 ]
-
-rec_companies-own [] ; to be determined
+rec_companies-own [ ]
 
 
 to setup
@@ -44,18 +40,25 @@ to setup
     set size 1
     set shape "hh"
     set waste 40 * 0.8
+    set knowledge_recycling 20
+    set perception_recycling 10
+
   ]
     create-singles number_single [
     set color green
     set size 1
     set shape "hh"
     set waste 40 * 1
+    set knowledge_recycling 30
+    set perception_recycling 50
   ]
     create-couples number_couple [
     set color yellow
     set size 1
     set shape "hh"
     set waste 40 * 1.4
+    set knowledge_recycling 50
+    set perception_recycling 70
   ]
     create-families number_family [
     set color cyan
@@ -63,11 +66,14 @@ to setup
     set shape "hh"
     layout-circle (sort turtles) max-pxcor - 7
     set waste 40 * 2
+    set knowledge_recycling 60
+    set perception_recycling 30
   ]
     create-municipalities 1 [
     set color red
     set size 3
     set shape "mun"
+    set Budget 1000                                                                           ;; new
   ]
     create-rec_companies number_rec_companies [
     set color red
@@ -78,47 +84,49 @@ to setup
   set month 0
   reset-ticks
 end
-
 to go
-  if ticks >= 240 [ stop ]
+  if month >= 240 [ stop ]
   waste-equation
   count_months
-  try
+  if month mod 12 = 0 [incentivice]
+  recycling_rate_equation
   tick
 end
-
-
+to count_months
+  set month month + 1
+end
 to waste-equation
   ask turtles [
     set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)
   ]
 end
+to incentivice
+  let tickrange one-of (range 1 99)
 
-; test area IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
+  if tickrange >= Specified_Investment [
+    let i one-of (range 1 4)
+    ask (turtle-set olds singles families couples) [
+        if perception_recycling <= 100 [
+          set perception_recycling perception_recycling + i
+        if knowledge_recycling <= 100 [
+          set knowledge_recycling knowledge_recycling + i
+  ]]]]
 
-to try ;; all red turtles
-  ask turtles with [ color = yellow ] [ fd 1 ]
-
+  if tickrange <= Specified_Investment [
+    let j one-of (range 5 10)
+    ask (turtle-set olds singles families couples) with-min [recycling_rate]  [
+        if perception_recycling <= 100 [
+            set perception_recycling perception_recycling + j
+        if knowledge_recycling <= 100 [
+            set knowledge_recycling knowledge_recycling + j
+  ]]]]
 end
-
-
-
-;test area IIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII
-
-
-
-to spread-out-turtles-evenly
-  let d (world-width / count turtles)
-  let x (min-pxcor - 0.5 + (d / 2))
-  foreach sort turtles [ t ->
-    ask t [ set xcor round x ]
-    set x (x + d)
+to recycling_rate_equation
+  ask (turtle-set singles olds families couples) [
+   set recycling_rate 0.5 * ( perception_recycling + knowledge_recycling )
   ]
 end
 
-to count_months
-  set month month + 1
-end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
@@ -170,7 +178,7 @@ INPUTBOX
 96
 336
 number_old
-5.0
+12.0
 1
 0
 Number
@@ -181,7 +189,7 @@ INPUTBOX
 204
 336
 number_single
-13.0
+200.0
 1
 0
 Number
@@ -192,7 +200,7 @@ INPUTBOX
 215
 398
 number_family
-30.0
+1.0
 1
 0
 Number
@@ -203,7 +211,7 @@ INPUTBOX
 110
 399
 number_couple
-30.0
+1.0
 1
 0
 Number
@@ -211,8 +219,8 @@ Number
 PLOT
 659
 14
-1093
-447
+971
+135
 Waste Display Old
 ticks
 Total Waste
@@ -275,6 +283,84 @@ NIL
 NIL
 1
 
+PLOT
+977
+14
+1265
+245
+Perception rate
+Ticks
+Inncentive rate
+0.0
+240.0
+0.0
+100.0
+true
+true
+"" ""
+PENS
+"old" 1.0 0 -13840069 true "" "plot mean [perception_recycling] of olds"
+"single" 1.0 0 -13345367 true "" "plot mean [perception_recycling] of singles"
+"couples" 1.0 0 -11221820 true "" "plot mean [perception_recycling] of couples"
+"families" 1.0 0 -1184463 true "" "plot mean [perception_recycling] of families"
+
+SLIDER
+15
+418
+201
+451
+Specified_Investment
+Specified_Investment
+0
+100
+100.0
+10
+1
+NIL
+HORIZONTAL
+
+PLOT
+660
+149
+971
+479
+Recycling rate
+Ticks
+NIL
+0.0
+240.0
+0.0
+20.0
+true
+true
+"" ""
+PENS
+"singles" 1.0 0 -13345367 true "" "plot mean [recycling_rate] of singles"
+"families" 1.0 0 -1184463 true "" "plot mean [recycling_rate] of families"
+"couples" 1.0 0 -11221820 true "" "plot mean [recycling_rate] of couples"
+"olds" 1.0 0 -10899396 true "" "plot mean [recycling_rate] of olds"
+
+PLOT
+978
+246
+1263
+462
+Knowledge rate
+ticks
+Knowledge rate
+0.0
+240.0
+0.0
+100.0
+true
+true
+"" ""
+PENS
+"singles" 1.0 0 -13345367 true "" "plot mean [knowledge_recycling] of singles"
+"olds" 1.0 0 -10899396 true "" "plot mean [knowledge_recycling] of olds"
+"families" 1.0 0 -1184463 true "" "plot mean [knowledge_recycling] of families"
+"couples" 1.0 0 -11221820 true "" "plot mean [knowledge_recycling] of couples"
+
 @#$#@#$#@
 Roadmap:
 - turtles erstellen			x
@@ -291,21 +377,6 @@ Households have
 -knowlege_recycle: Describes the knowledge about how to recycle
 -acceptance_rate_incentives: Describes the acceptance of incentives and policies
 -recycling_rate: Is the rate of how well the household seperates the trash
-
-What influences What?
-
-
-
-
-Turtle = recycling_company
-Turtle = municipality
-Turtle = Houshold
-Turtle = Truck (for visualization)?
-
-Time:
-* tick = 1 Month --> (30 TAGE)
---> 20 Jahre == max_ticks 240
-
 
 recycling_company
 have:
@@ -344,7 +415,58 @@ Initialization:
 		desity
 		population distribution
 
-		
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Pseudocode Muncicpality Incentivizing households
+
+
+;;in to go function: stop incentivizing e.g. if knowledge_recycling >= 100
+;; Include decide random as propability slider
+
+
+
+if Budget of Municipality > 0:
+	decide random: inventivize ALL-Agents (1) OR Incentivize SPECIFIC-Agent (2)
+
+(1)    Budget - incentivizing costs x4
+       set knowledge_recycling + random number between  e.g. 0 and 4
+       set perception_recycling + random number between  e.g. 0 and 4
+       set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
+
+(2)    choose which agent has lowest recycling rate
+       Budget - incentivizing costs x1
+       set knowledge_recycling + random number between  e.g. 0 and 4
+       set perception_recycling + random number between  e.g. 0 and 4
+       set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @#$#@#$#@
 default
 true
