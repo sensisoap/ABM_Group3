@@ -72,7 +72,7 @@ to setup
     set perception_recycling 30
   ]
     create-municipalities 1 [
-    set color red
+    set color pink
     set size 3
     set shape "mun"
     set Budget 1000                                                                           ;; new
@@ -103,10 +103,10 @@ to waste-equation
   ]
 end
 to incentivice
-  let tickrange one-of (range 1 99)
+  let tickrange one-of (range 1 99)    ; Warum one-of ? in der beschreibung steht dass es man einen random agent anspricht willst du hier einen bestimmten agent ansprechen? (https://ccl.northwestern.edu/netlogo/bind/primitive/one-of.html) link zu was ich mein
 
   if tickrange >= Specified_Investment [
-    let i one-of (range 1 4)
+    let i one-of (range 1 4)                       ; gleiche frage wie darueber
     ask (turtle-set olds singles families couples) [
         if perception_recycling <= 100 [
           set perception_recycling perception_recycling + i
@@ -190,7 +190,7 @@ INPUTBOX
 204
 336
 number_single
-200.0
+10.0
 1
 0
 Number
@@ -201,7 +201,7 @@ INPUTBOX
 215
 398
 number_family
-1.0
+10.0
 1
 0
 Number
@@ -212,7 +212,7 @@ INPUTBOX
 110
 399
 number_couple
-1.0
+10.0
 1
 0
 Number

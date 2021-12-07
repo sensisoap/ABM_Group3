@@ -40,7 +40,7 @@ to setup
   create-olds number_old [
     set color blue
     set size 1
-    set shape "h"
+    set shape "elderly"
     set waste 40 * 0.8
     set knowledge_recycling 20
     set perception_recycling 10
@@ -49,7 +49,7 @@ to setup
     create-singles number_single [
     set color green
     set size 1
-    set shape "hh"
+    set shape "person"
     set waste 40 * 1
     set knowledge_recycling 30
     set perception_recycling 50
@@ -57,7 +57,7 @@ to setup
     create-couples number_couple [
     set color yellow
     set size 1
-    set shape "hh"
+    set shape "couple"
     set waste 40 * 1.4
     set knowledge_recycling 50
     set perception_recycling 70
@@ -65,14 +65,14 @@ to setup
     create-families number_family [
     set color cyan
     set size 1
-    set shape "hh"
+    set shape "family"
     layout-circle (sort turtles) max-pxcor - 7
     set waste 40 * 2
     set knowledge_recycling 60
     set perception_recycling 30
   ]
     create-municipalities 1 [
-    set color red
+    set color pink
     set size 3
     set shape "mun"
     set Budget 1000                                                                           ;; new
@@ -103,7 +103,7 @@ to waste-equation
   ]
 end
 to incentivice
-  let tickrange one-of (range 1 99)
+  let tickrange one-of (range 1 99)    ; Warum one-of ? in der beschreibung steht dass es man einen random agent anspricht willst du hier einen bestimmten agent ansprechen?
 
   if tickrange >= Specified_Investment [
     let i one-of (range 1 4)
@@ -190,7 +190,7 @@ INPUTBOX
 204
 336
 number_single
-200.0
+10.0
 1
 0
 Number
@@ -201,7 +201,7 @@ INPUTBOX
 215
 398
 number_family
-1.0
+10.0
 1
 0
 Number
@@ -212,7 +212,7 @@ INPUTBOX
 110
 399
 number_couple
-1.0
+10.0
 1
 0
 Number
