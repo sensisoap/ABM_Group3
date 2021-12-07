@@ -40,7 +40,7 @@ to setup
   create-olds number_old [
     set color blue
     set size 1
-    set shape "elderly"
+    set shape "h"
     set waste 40 * 0.8
     set knowledge_recycling 20
     set perception_recycling 10
@@ -49,7 +49,7 @@ to setup
     create-singles number_single [
     set color green
     set size 1
-    set shape "person"
+    set shape "hh"
     set waste 40 * 1
     set knowledge_recycling 30
     set perception_recycling 50
@@ -57,7 +57,7 @@ to setup
     create-couples number_couple [
     set color yellow
     set size 1
-    set shape "couple"
+    set shape "hh"
     set waste 40 * 1.4
     set knowledge_recycling 50
     set perception_recycling 70
@@ -65,7 +65,7 @@ to setup
     create-families number_family [
     set color cyan
     set size 1
-    set shape "family"
+    set shape "hh"
     layout-circle (sort turtles) max-pxcor - 7
     set waste 40 * 2
     set knowledge_recycling 60
