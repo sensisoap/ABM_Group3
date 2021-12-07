@@ -103,10 +103,10 @@ to waste-equation
   ]
 end
 to incentivice
-  let tickrange one-of (range 1 99)    ; Warum one-of ? in der beschreibung steht dass es man einen random agent anspricht willst du hier einen bestimmten agent ansprechen? (https://ccl.northwestern.edu/netlogo/bind/primitive/one-of.html) link zu was ich mein
+  let tickrange one-of (range 1 99)
 
   if tickrange >= Specified_Investment [
-    let i one-of (range 1 4)                       ; gleiche frage wie darueber
+    let i one-of (range 1 4)
     ask (turtle-set olds singles families couples) [
         if perception_recycling <= 100 [
           set perception_recycling perception_recycling + i
