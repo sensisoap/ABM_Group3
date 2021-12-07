@@ -8,14 +8,14 @@ breed [ families family ]
 breed [ rec_companies rec_company ]
 
 
-turtles-own [ waste ] ;; anpassen mun & rec kein waste
+turtles-own [ waste ]                                                                 ; anpassen mun & rec kein waste
 
 municipalities-own [ Budget ]
 
-olds-own [ acceptance_rate_incentives
-  perception_recycling
-  knowledge_recycling
-  recycling_rate
+olds-own [ acceptance_rate_incentives                                                 ; acceptance_rate_incentives describes how well households react to incentives (cannot be influenced by incentives)
+  perception_recycling                                                                ; describes how important recycling is perceived by the household  (can be influenced by incentives)
+  knowledge_recycling                                                                 ; describes to what extend households are educated on how to recycle (can be influenced by incentives)
+  recycling_rate                                                                      ; the recycling_rate is an equation derived from perception and knowledge
 ]
 singles-own [ acceptance_rate_incentives
   perception_recycling
@@ -41,7 +41,7 @@ to setup
     set color blue
     set size 1
     set shape "elderly"
-    set waste 40 * 0.8
+    set waste 40 * 0.8                                                                   ; 40 is base waste while 0.8 is the factor for old (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 20
     set perception_recycling 10
 
@@ -50,7 +50,7 @@ to setup
     set color green
     set size 1
     set shape "person"
-    set waste 40 * 1
+    set waste 40 * 1                                                                      ; 40 is base waste while 1 is the factor for singles (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 30
     set perception_recycling 50
   ]
@@ -58,7 +58,7 @@ to setup
     set color yellow
     set size 1
     set shape "couple"
-    set waste 40 * 1.4
+    set waste 40 * 1.4                                                                    ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 50
     set perception_recycling 70
   ]
@@ -67,7 +67,7 @@ to setup
     set size 1
     set shape "family"
     layout-circle (sort turtles) max-pxcor - 7
-    set waste 40 * 2
+    set waste 40 * 2                                                                      ; 40 is base waste while 2 is the factor for families (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 60
     set perception_recycling 30
   ]
@@ -75,7 +75,7 @@ to setup
     set color pink
     set size 3
     set shape "mun"
-    set Budget 1000                                                                           ;; new
+    set Budget 1000                                                                       ; new (Was bedeutet new?)
   ]
     create-rec_companies number_rec_companies [
     set color red
@@ -87,35 +87,35 @@ to setup
   reset-ticks
 end
 to go
-  if month >= 240 [ stop ]
+  if month >= 240 [ stop ]                                                                 ; sets the time limit of the model to 2 years
   waste-equation
   count_months
-  if month mod 12 = 0 [incentivice]
+  if month mod 12 = 0 [incentivice]                                                        ; LUKAS explain please
   recycling_rate_equation
   tick
 end
+
 to count_months
   set month month + 1
 end
 to waste-equation
   ask turtles [
-    set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)
+    set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)                   ; waste equation given depending on time
   ]
 end
-
 to incentivice
-  let tickrange one-of (range 1 99)
+  let tickrange one-of (range 1 99)                                                        ; generate random number between 1 and 99
 
-  if tickrange >= Specified_Investment [
+  if tickrange >= Specified_Investment [                                                   ;specified_investment is a ratio of specified and general incentives, if the random tickrnage value is larger or equal to the specific_investment value a general inventive is chosen
     let i one-of (range 1 4)
     ask (turtle-set olds singles families couples) [
         if perception_recycling <= 100 [
-          set perception_recycling perception_recycling + i
+          set perception_recycling perception_recycling + i                                ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
         if knowledge_recycling <= 100 [
-          set knowledge_recycling knowledge_recycling + i
+          set knowledge_recycling knowledge_recycling + i                                  ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
   ]]]]
 
-  if tickrange <= Specified_Investment [
+  if tickrange <= Specified_Investment [                                                   ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
     let j one-of (range 5 10)
     ask (turtle-set olds singles families couples) with-min [recycling_rate]  [
         if perception_recycling <= 100 [
@@ -129,6 +129,7 @@ to recycling_rate_equation
    set recycling_rate 0.5 * ( perception_recycling + knowledge_recycling )
   ]
 end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
