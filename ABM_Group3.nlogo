@@ -42,7 +42,7 @@ to setup
     set size 1
     set shape "elderly"
     set waste 40 * 0.8                                                                   ; 40 is base waste while 0.8 is the factor for old (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
-    set knowledge_recycling 20
+    set knowledge_recycling 20                                                           ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
     set perception_recycling 10
 
   ]
@@ -91,7 +91,7 @@ to go
   if month >= 240 [ stop ]                                                                 ; sets the time limit of the model to 2 years
   waste-equation
   count_months
-  if month mod 12 = 0 [incentivice]                                                        ; LUKAS explain please
+  if month mod 12 = 0 [incentivice]                                                        ; every 12 month incentives are set
   recycling_rate_equation
   tick
 end
@@ -134,6 +134,9 @@ to recycling_rate_equation
   ]
 end
 
+;to garbage
+;  let rec (((40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)) * 0.3 ) * (0.5 *  knowledge_recycling + perception_recycling ) ) * number_old )
+;  end
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
