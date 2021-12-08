@@ -43,8 +43,8 @@ to setup
     set color blue
     set size 1
     set shape "elderly"
-    set waste 40 * 0.8                                                                   ; 40 is base waste while 0.8 is the factor for old (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
-    set knowledge_recycling 20                                                           ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
+    set waste 40 * 0.8                                                                                                                                      ; 40 is base waste while 0.8 is the factor for old (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
+    set knowledge_recycling 20                                                                                                                              ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
     set perception_recycling 10
     set acceptance_rate_incentives 1
 
@@ -53,7 +53,7 @@ to setup
     set color green
     set size 1
     set shape "person"
-    set waste 40 * 1                                                                      ; 40 is base waste while 1 is the factor for singles (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
+    set waste 40 * 1                                                                                                                                       ; 40 is base waste while 1 is the factor for singles (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 30
     set perception_recycling 50
     set acceptance_rate_incentives 0.8
@@ -62,7 +62,7 @@ to setup
     set color yellow
     set size 1
     set shape "couple"
-    set waste 40 * 1.4                                                                    ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
+    set waste 40 * 1.4                                                                                                                                     ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 50
     set perception_recycling 70
     set acceptance_rate_incentives 0.4
@@ -72,7 +72,7 @@ to setup
     set size 1
     set shape "family"
     layout-circle (sort turtles) max-pxcor - 7
-    set waste 40 * 2                                                                      ; 40 is base waste while 2 is the factor for families (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
+    set waste 40 * 2                                                                                                                                       ; 40 is base waste while 2 is the factor for families (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 60
     set perception_recycling 30
     set acceptance_rate_incentives 0.1
@@ -81,7 +81,7 @@ to setup
     set color pink
     set size 3
     set shape "mun"
-    set Budget 1000                                                                       ; new (Was bedeutet new?)
+    set Budget 1000                                                                                                                                        ; new (Was bedeutet new?)
   ]
     create-rec_companies number_rec_companies [
     set color red
@@ -94,10 +94,10 @@ to setup
 end
 
 to go
-  if month >= 240 [ stop ]                                                                 ; sets the time limit of the model to 2 years
+  if month >= 240 [ stop ]                                                                                                                                 ; sets the time limit of the model to 2 years
   waste-equation
   count_months
-  if month mod 12 = 0 [incentivice]                                                        ; every 12 month incentives are set
+  if month mod 12 = 0 [incentivice]                                                                                                                        ; every 12 month incentives are set
   recycling_rate_equation
   recycled_plastics_equation
   tick
@@ -109,25 +109,25 @@ end
 
 to waste-equation
   ask turtles [
-    set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)                   ; waste equation given depending on time
+    set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)                                                                                    ; waste equation given depending on time
   ]
 end
 
 to incentivice
-  let tickrange one-of (range 1 99)                                                        ; generate random number between 1 and 99
+  let tickrange one-of (range 1 99)                                                                                                                         ; generate random number between 1 and 99
 
-  if tickrange >= Specified_Investment [                                                   ;specified_investment is a ratio of specified and general incentives, if the random tickrnage value is larger or equal to the specific_investment value a general inventive is chosen
+  if tickrange >= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrnage value is larger or equal to the specific_investment value a general inventive is chosen
     let i one-of (range 1 4)
     ask (turtle-set olds singles families couples) [
         if perception_recycling <= 100 [
-          set perception_recycling perception_recycling + i * acceptance_rate_incentives                                ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
+          set perception_recycling perception_recycling + i * acceptance_rate_incentives                                                                    ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
         if knowledge_recycling <= 100 [
-          set knowledge_recycling knowledge_recycling + i * acceptance_rate_incentives                                  ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
+          set knowledge_recycling knowledge_recycling + i * acceptance_rate_incentives                                                                      ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
   ]]]]
 
-  if tickrange <= Specified_Investment [                                                   ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
+  if tickrange <= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
     let j one-of (range 5 10)
-    ask (turtle-set olds singles families couples) with-max [ Amount_recycable_plastic / 100 * waste * count turtles  - presorted * count turtles ]  [  ;: [Amount_recycable_plastic / 100 * waste * count turtles  - presorted * count turtles] == foundation of decision meaning difference from potential [waste*Amount_recycable_plastic to presorted]
+    ask (turtle-set olds singles families couples) with-max [ Amount_recycable_plastic / 100 * waste * count turtles  - presorted * count turtles ]  [      ; [Amount_recycable_plastic / 100 * waste * count turtles  - presorted * count turtles] == foundation of decision meaning difference from potential [waste*Amount_recycable_plastic to presorted]
         if perception_recycling <= 100 [
             set perception_recycling perception_recycling + j * acceptance_rate_incentives
         if knowledge_recycling <= 100 [
@@ -141,9 +141,9 @@ to recycling_rate_equation
   ]
 end
 
-to recycled_plastics_equation                                                              ; calculate presorted based on potential recycable plastic multiplied with recycling rate of turtles
+to recycled_plastics_equation                                                                                                                               ; calculate presorted based on potential recycable plastic multiplied with recycling rate of turtles
    ask (turtle-set singles olds families couples ) [
-   set presorted recycling_rate / 100 * waste * Amount_recycable_plastic / 100             ; Amount_recycable_plastic is the factor of the potential recyclable plastic inside of the waste
+   set presorted recycling_rate / 100 * waste * Amount_recycable_plastic / 100                                                                              ; Amount_recycable_plastic is the factor of the potential recyclable plastic inside of the waste
   ]
 end
 @#$#@#$#@
@@ -407,7 +407,7 @@ SLIDER
 0
 565
 210
-600
+598
 Amount_recycable_plastic
 Amount_recycable_plastic
 0
@@ -421,8 +421,8 @@ HORIZONTAL
 PLOT
 1282
 390
-1684
-758
+1718
+630
 decision making
 ticks
 Absolute waste that could be recycled
@@ -529,7 +529,6 @@ if Budget of Municipality > 0:
        set knowledge_recycling + random number between  e.g. 0 and 4
        set perception_recycling + random number between  e.g. 0 and 4
        set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
 
 
 
