@@ -42,6 +42,8 @@ rec_companies-own [ postsorting
   recycling_process
   contract
   money
+  presorted
+
 ]
 
 
@@ -112,6 +114,7 @@ to go
   recycling_rate_equation
   potential_equation
   recycled_plastics_equation
+  rec_companies-equation
   tick
 end
 
@@ -178,6 +181,22 @@ to potential_equation                                                           
     ]
 end
 
+
+
+
+
+to rec_companies-equation
+  let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
+  let postsorting_random one-of (range 80 90)
+  let recycling_process_random one-of (range 50 65)
+  ask rec_companies [
+    set presorted sumofpresorted
+    set postsorting postsorting_random / 100 * presorted
+    set recycling_process recycling_process_random / 100 * postsorting
+  ]
+
+end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 283
@@ -240,7 +259,7 @@ INPUTBOX
 204
 336
 number_single
-11.0
+50.0
 1
 0
 Number
@@ -251,7 +270,7 @@ INPUTBOX
 215
 398
 number_family
-100.0
+50.0
 1
 0
 Number
@@ -262,7 +281,7 @@ INPUTBOX
 110
 399
 number_couple
-70.0
+50.0
 1
 0
 Number
@@ -316,27 +335,6 @@ NIL
 NIL
 1
 
-PLOT
-977
-14
-1265
-245
-Perception rate
-Ticks
-Inncentive rate
-0.0
-240.0
-0.0
-100.0
-true
-true
-"" ""
-PENS
-"old" 1.0 0 -13840069 true "" "plot mean [perception_recycling] of olds"
-"single" 1.0 0 -13345367 true "" "plot mean [perception_recycling] of singles"
-"couples" 1.0 0 -2674135 true "" "plot mean [perception_recycling] of couples"
-"families" 1.0 0 -1184463 true "" "plot mean [perception_recycling] of families"
-
 SLIDER
 352
 549
@@ -346,7 +344,7 @@ Specified_Investment
 Specified_Investment
 0
 100
-100.0
+50.0
 10
 1
 NIL
@@ -357,7 +355,7 @@ PLOT
 149
 971
 479
-Recycling rate
+Presorting rate HH
 Ticks
 NIL
 0.0
@@ -374,32 +372,11 @@ PENS
 "olds" 1.0 0 -13840069 true "" "plot mean [recycling_rate] of olds"
 
 PLOT
-978
-246
-1263
-462
-Knowledge rate
-ticks
-Knowledge rate
-0.0
-240.0
-0.0
-100.0
-true
-true
-"" ""
-PENS
-"singles" 1.0 0 -13345367 true "" "plot mean [knowledge_recycling] of singles"
-"olds" 1.0 0 -13840069 true "" "plot mean [knowledge_recycling] of olds"
-"families" 1.0 0 -1184463 true "" "plot mean [knowledge_recycling] of families"
-"couples" 1.0 0 -2674135 true "" "plot mean [knowledge_recycling] of couples"
-
-PLOT
 1280
 22
 1718
 388
-Recycling plastic
+Presorted plastic HH
 ticks
 Waste and Recycled waste 
 0.0
@@ -423,7 +400,7 @@ Amount_recycable_plastic
 Amount_recycable_plastic
 0
 100
-50.0
+60.0
 10
 1
 %
@@ -450,27 +427,6 @@ PENS
 "families" 1.0 0 -1184463 true "" "plot mean [waste] of families * count families * Amount_recycable_plastic / 100 -  mean [presorted] of families * count families"
 "couples" 1.0 0 -2674135 true "" "plot mean [waste] of couples * count couples * Amount_recycable_plastic / 100 -  mean [presorted] of couples * count couples"
 
-PLOT
-908
-475
-1246
-724
-plot 1
-NIL
-potential
-0.0
-240.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"olds" 1.0 0 -10899396 true "" "plot  mean [potential] of olds "
-"singles" 1.0 0 -13345367 true "" "plot  mean [potential] of singles "
-"families" 1.0 0 -1184463 true "" "plot  mean [potential] of families "
-"couples" 1.0 0 -2674135 true "" "plot  mean [potential] of couples "
-
 SLIDER
 0
 412
@@ -480,7 +436,7 @@ Acceptance_rate_Incentives_olds
 Acceptance_rate_Incentives_olds
 0
 100
-50.0
+100.0
 10
 1
 NIL
@@ -510,7 +466,7 @@ Acceptance_rate_Incentives_families
 Acceptance_rate_Incentives_families
 0
 100
-100.0
+60.0
 10
 1
 NIL
@@ -530,6 +486,26 @@ Acceptance_rate_Incentives_couples
 1
 NIL
 HORIZONTAL
+
+PLOT
+938
+35
+1281
+455
+Recycling Companies Presorted Process
+ticks
+Waste and Plastic
+0.0
+240.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"Plastic input" 1.0 0 -4539718 true "" "plot mean [presorted] of rec_companies"
+"postsorting Output" 1.0 0 -9276814 true "" "plot mean [postsorting] of rec_companies"
+"Recycling Outpput" 1.0 0 -16777216 true "" "plot mean [recycling_process] of rec_companies"
 
 @#$#@#$#@
 Roadmap:
