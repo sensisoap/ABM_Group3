@@ -178,6 +178,7 @@ to potential_equation                                                           
     ]
 end
 
+to
 @#$#@#$#@
 GRAPHICS-WINDOW
 283
