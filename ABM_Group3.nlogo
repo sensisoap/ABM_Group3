@@ -9,13 +9,16 @@ breed [ rec_companies rec_company ]
 
 
 turtles-own [ waste ]                                                                 ; anpassen mun & rec kein waste
-municipalities-own [ Budget ]
+municipalities-own [ Budget
+  contract
+]
 olds-own [ acceptance_rate_incentives                                                 ; acceptance_rate_incentives describes how well households react to incentives (cannot be influenced by incentives)
   perception_recycling                                                                ; describes how important recycling is perceived by the household  (can be influenced by incentives)
   knowledge_recycling                                                                 ; describes to what extend households are educated on how to recycle (can be influenced by incentives)
   recycling_rate                                                                      ; the recycling_rate is an equation derived from perception and knowledge
   presorted                                                                           ; recycling rate * pre factor (== decide how much recplastic is in waste) * waste ;; define how much potential recyclable plastic is in waste
   potential
+  unsorted
 ]
 singles-own [ acceptance_rate_incentives
   perception_recycling
@@ -23,6 +26,7 @@ singles-own [ acceptance_rate_incentives
   recycling_rate
   presorted
   potential
+  unsorted
 ]
 couples-own [ acceptance_rate_incentives
   perception_recycling
@@ -30,6 +34,7 @@ couples-own [ acceptance_rate_incentives
   recycling_rate
   presorted
   potential
+  unsorted
 ]
 families-own [ acceptance_rate_incentives
   perception_recycling
@@ -37,13 +42,20 @@ families-own [ acceptance_rate_incentives
   recycling_rate
   presorted
   potential
+  unsorted
 ]
-rec_companies-own [ postsorting
-  recycling_process
+rec_companies-own [ postsorting_presorted
+  recycling_process_presorted
+  postsorting_unsorted
+  recycling_process_unsorted
   contract
   money
   presorted
-
+  unsorted
+  recycling_rate
+  input
+  capacity
+  contract
 ]
 
 
@@ -111,10 +123,12 @@ to go
   waste-equation
   count_months
   if month mod 12 = 0 [incentivice]                                                                                                                        ; every 12 month incentives are set
-  recycling_rate_equation
-  potential_equation
-  recycled_plastics_equation
+  recycling_rate-equation
+  potential-equation
+  recycled_plastics-equation
   rec_companies-equation
+  unsorted-equation
+  rec_companies_recycling_rate-equation
   tick
 end
 
@@ -154,19 +168,19 @@ to incentivice                                                                  
   ]]]]
 end
 
-to recycling_rate_equation                                                                                                                                  ; calculate the recycling rate of housholds with a weightening of 50/50 for knowledge_recycle and perception_recycle
+to recycling_rate-equation                                                                                                                                  ; calculate the recycling rate of housholds with a weightening of 50/50 for knowledge_recycle and perception_recycle
   ask (turtle-set singles olds families couples) [
    set recycling_rate 0.5 * ( perception_recycling + knowledge_recycling )
   ]
 end
 
-to recycled_plastics_equation                                                                                                                               ; calculate presorted based on potential recycable plastic multiplied with recycling rate of turtles
+to recycled_plastics-equation                                                                                                                               ; calculate presorted based on potential recycable plastic multiplied with recycling rate of turtles
    ask (turtle-set singles olds families couples ) [
    set presorted recycling_rate / 100 * waste * Amount_recycable_plastic / 100                                                                              ; Amount_recycable_plastic is the percentage of the potential recyclable plastic inside of the waste in general
   ]
 end
 
-to potential_equation                                                                                                                                       ; This equation defines the potential of of each breed in ever tick | Potential = possible waste left to recycle in waste per breed
+to potential-equation                                                                                                                                       ; This equation defines the potential of of each breed in ever tick | Potential = possible waste left to recycle in waste per breed
   ask olds [
     set potential number_old * ( (Amount_recycable_plastic / 100) * waste - presorted )
     ]
@@ -181,23 +195,42 @@ to potential_equation                                                           
     ]
 end
 
-
-
-
+to unsorted-equation
+  ask (turtle-set singles olds families couples ) [
+    set unsorted waste * Amount_recycable_plastic / 100 - presorted
+  ]
+end
 
 to rec_companies-equation
   let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
-  let postsorting_random one-of (range 80 90)
-  let recycling_process_random one-of (range 50 65)
+  let postsorting_presorted_random one-of (range 80 90)
+  let recycling_process_presorted_random one-of (range 70 85)
   ask rec_companies [
     set presorted sumofpresorted
-    set postsorting postsorting_random / 100 * presorted
-    set recycling_process recycling_process_random / 100 * postsorting
+    set postsorting_presorted postsorting_presorted_random / 100 * presorted
+    set recycling_process_presorted recycling_process_presorted_random / 100 * postsorting_presorted
   ]
-
-
+  let sumofunsorted sum [ unsorted ] of (turtle-set singles olds families couples )
+  let postsorting_unsorted_random one-of (range 40 60)
+  let recycling_process_unsorted_random one-of (range 40 60)
+  ask rec_companies [
+    set unsorted sumofunsorted
+    set postsorting_unsorted postsorting_unsorted_random / 100 * unsorted
+    set recycling_process_unsorted recycling_process_unsorted_random / 100 * postsorting_unsorted
+    ]
 end
 
+to rec_companies_recycling_rate-equation
+  ask rec_companies [
+    set recycling_rate (recycling_process_unsorted + recycling_process_presorted) / (presorted + unsorted)
+  ]
+  let sumofwaste sum [ waste ] of (turtle-set singles olds families couples )
+  let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
+
+ ask rec_companies [
+   set input sumofwaste - sumofpresorted
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 283
@@ -249,7 +282,7 @@ INPUTBOX
 96
 336
 number_old
-100.0
+1.0
 1
 0
 Number
@@ -260,7 +293,7 @@ INPUTBOX
 204
 336
 number_single
-50.0
+0.0
 1
 0
 Number
@@ -271,7 +304,7 @@ INPUTBOX
 215
 398
 number_family
-50.0
+0.0
 1
 0
 Number
@@ -282,7 +315,7 @@ INPUTBOX
 110
 399
 number_couple
-50.0
+0.0
 1
 0
 Number
@@ -352,10 +385,10 @@ NIL
 HORIZONTAL
 
 PLOT
-660
-149
-971
-479
+673
+29
+942
+268
 Presorting rate HH
 Ticks
 NIL
@@ -370,7 +403,8 @@ PENS
 "singles" 1.0 0 -13345367 true "" "plot mean [recycling_rate] of singles"
 "families" 1.0 0 -1184463 true "" "plot mean [recycling_rate] of families"
 "couples" 1.0 0 -2674135 true "" "plot mean [recycling_rate] of couples"
-"olds" 1.0 0 -13840069 true "" "plot mean [recycling_rate] of olds"
+"olds" 1.0 0 -13840069 true "" "plot mean [recycling_rate] of olds "
+"Recycling rate city" 1.0 0 -7500403 true "" "plot mean [recycling_rate] of rec_companies * 100"
 
 PLOT
 1280
@@ -383,7 +417,7 @@ Waste and Recycled waste
 0.0
 240.0
 0.0
-500.0
+10.0
 true
 true
 "" ""
@@ -391,6 +425,7 @@ PENS
 "presorted old" 1.0 0 -5509967 true "" "plot mean [presorted] of olds * count olds"
 "waste old" 1.0 0 -13840069 true "" "plot  mean [waste] of olds * count olds"
 "potential recycling olds" 1.0 0 -14333415 true "" "plot  mean [waste] of olds * count olds * Amount_recycable_plastic / 100"
+"unsorted old" 1.0 0 -6565750 true "" "plot  mean [unsorted] of olds * count olds * Amount_recycable_plastic / 100"
 
 SLIDER
 353
@@ -432,7 +467,7 @@ SLIDER
 0
 412
 239
-447
+445
 Acceptance_rate_Incentives_olds
 Acceptance_rate_Incentives_olds
 0
@@ -447,7 +482,7 @@ SLIDER
 0
 453
 253
-488
+486
 Acceptance_rate_Incentives_singles
 Acceptance_rate_Incentives_singles
 0
@@ -462,7 +497,7 @@ SLIDER
 0
 496
 239
-531
+529
 Acceptance_rate_Incentives_families
 Acceptance_rate_Incentives_families
 0
@@ -477,7 +512,7 @@ SLIDER
 0
 536
 258
-571
+569
 Acceptance_rate_Incentives_couples
 Acceptance_rate_Incentives_couples
 0
@@ -489,10 +524,10 @@ NIL
 HORIZONTAL
 
 PLOT
-938
-35
-1281
-455
+941
+15
+1286
+374
 Recycling Companies Presorted Process
 ticks
 Waste and Plastic
@@ -505,8 +540,29 @@ true
 "" ""
 PENS
 "Plastic input" 1.0 0 -4539718 true "" "plot mean [presorted] of rec_companies"
-"postsorting Output" 1.0 0 -9276814 true "" "plot mean [postsorting] of rec_companies"
-"Recycling Outpput" 1.0 0 -16777216 true "" "plot mean [recycling_process] of rec_companies"
+"postsorting Output" 1.0 0 -9276814 true "" "plot mean [postsorting_presorted] of rec_companies"
+"Recycling Outpput" 1.0 0 -16777216 true "" "plot mean [recycling_process_presorted] of rec_companies"
+
+PLOT
+943
+370
+1279
+705
+Recycling companies Unsorted Process
+Ticks
+Waste and Plastic
+0.0
+240.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"unsorted Plastic input " 1.0 0 -4539718 true "" "plot mean [unsorted] of rec_companies"
+"postsorting output" 1.0 0 -11053225 true "" "plot mean [postsorting_unsorted] of rec_companies"
+"recycling output" 1.0 0 -16777216 true "" "plot mean [recycling_process_unsorted] of rec_companies"
+"unsorted waste input" 1.0 0 -6759204 true "" "plot mean [input] of rec_companies"
 
 @#$#@#$#@
 Roadmap:
@@ -598,7 +654,6 @@ if Budget of Municipality > 0:
        set knowledge_recycling + random number between  e.g. 0 and 4
        set perception_recycling + random number between  e.g. 0 and 4
        set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
 
 
 
