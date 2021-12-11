@@ -56,6 +56,8 @@ rec_companies-own [ postsorting_presorted
   input
   capacity
   contract
+  contract_capacity
+  average_technology
 ]
 
 
@@ -114,6 +116,7 @@ to setup
     set size 3
     set shape "rec"
     setxy  random-pycor -12
+    set capacity 500
   ]
   set month 0
   reset-ticks
@@ -129,6 +132,7 @@ to go
   rec_companies-equation
   unsorted-equation
   rec_companies_recycling_rate-equation
+  if month mod 36 = 0 [contract-equation]
   tick
 end
 
@@ -140,7 +144,7 @@ to count_months                                                                 
 end
 
 to waste-equation                                                                                                                                           ; waste equation given depending on time
-  ask turtles [
+  ask (turtle-set singles olds families couples ) [
     set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)
   ]
 end
@@ -151,21 +155,25 @@ to incentivice                                                                  
   if tickrange >= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrnage value is larger or equal to the specific_investment value a general inventive is chosen
     let i one-of (range 1 4)
     ask (turtle-set olds singles families couples) [
-        if perception_recycling <= 100 [
+        if perception_recycling < 100 [
           set perception_recycling perception_recycling + i * acceptance_rate_incentives                                                                    ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
-        if knowledge_recycling <= 100 [
+        if knowledge_recycling < 100 [
           set knowledge_recycling knowledge_recycling + i * acceptance_rate_incentives                                                                      ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
   ]]]]
 
   if tickrange <= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
     let j one-of (range 5 15)
     ask (turtle-set olds singles families couples) with-max [ potential ]  [
-        if perception_recycling <= 100 [
+        if perception_recycling < 100 [
             set perception_recycling perception_recycling + j * acceptance_rate_incentives
-        if knowledge_recycling <= 100 [
+        if knowledge_recycling < 100 [
             set knowledge_recycling knowledge_recycling + j * acceptance_rate_incentives
 
   ]]]]
+  ask (turtle-set singles olds families couples ) [
+    if perception_recycling > 100 [set perception_recycling 100]
+    if knowledge_recycling > 100 [set knowledge_recycling 100 ]
+  ]
 end
 
 to recycling_rate-equation                                                                                                                                  ; calculate the recycling rate of housholds with a weightening of 50/50 for knowledge_recycle and perception_recycle
@@ -231,6 +239,22 @@ to rec_companies_recycling_rate-equation
    set input sumofwaste - sumofpresorted
   ]
 end
+
+to contract-equation
+  let sumofwaste sum [waste] of (turtle-set singles olds families couples )
+  let sumofcontract_capacity sum [contract_capacity] of rec_companies
+  while [sumofwaste > sumofcontract_capacity] [
+    ask rec_companies with [(contract_capacity < capacity) and (rec_companies with-max [average_technology)] [
+      set contract_capacity
+
+  ]]]
+end
+
+to reset_contract
+  ask rec_companies [
+    set contract_capacity 0
+  ]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 283
@@ -282,7 +306,7 @@ INPUTBOX
 96
 336
 number_old
-1.0
+100.0
 1
 0
 Number
@@ -293,7 +317,7 @@ INPUTBOX
 204
 336
 number_single
-0.0
+50.0
 1
 0
 Number
@@ -304,7 +328,7 @@ INPUTBOX
 215
 398
 number_family
-0.0
+60.0
 1
 0
 Number
@@ -315,7 +339,7 @@ INPUTBOX
 110
 399
 number_couple
-0.0
+30.0
 1
 0
 Number
@@ -378,7 +402,7 @@ Specified_Investment
 Specified_Investment
 0
 100
-50.0
+100.0
 10
 1
 NIL
@@ -565,16 +589,6 @@ PENS
 "unsorted waste input" 1.0 0 -6759204 true "" "plot mean [input] of rec_companies"
 
 @#$#@#$#@
-Roadmap:
-- turtles erstellen			x
-- waste equation reinbringen
-- limit für ticks reinbringen		x
-- waste wert den turtles zuweisen	x
-- go button zum laufen bekommen		x
-- waste wert über zeit plotten lassen	x
-- add range for each variable 
-
-
 Households have
 -perception_rate: Describes how important recycling is to the household
 -knowlege_recycle: Describes the knowledge about how to recycle
@@ -654,7 +668,6 @@ if Budget of Municipality > 0:
        set knowledge_recycling + random number between  e.g. 0 and 4
        set perception_recycling + random number between  e.g. 0 and 4
        set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
 
 
 
