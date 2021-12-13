@@ -264,7 +264,7 @@ end
 to reset_contract ;reset the assigned capacity of ech recycling company
   ask rec_companies [
     set contract_capacity 0
-    set contract 0
+
   ]
 end
 
