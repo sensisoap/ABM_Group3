@@ -67,7 +67,6 @@ to setup
     set color blue
     set size 1
     set shape "elderly"
-    set waste 40 * 0.8                                                                                                                                      ; 40 is base waste while 0.8 is the factor for old (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 20                                                                                                                              ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
     set perception_recycling 10
     set acceptance_rate_incentives Acceptance_rate_Incentives_olds / 100
@@ -78,7 +77,6 @@ to setup
     set color green
     set size 1
     set shape "person"
-    set waste 40 * 1                                                                                                                                       ; 40 is base waste while 1 is the factor for singles (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 30
     set perception_recycling 50
     set acceptance_rate_incentives Acceptance_rate_Incentives_singles / 100
@@ -87,8 +85,7 @@ to setup
     create-couples number_couple [
     set color yellow
     set size 1
-    set shape "couple"
-    set waste 40 * 1.4                                                                                                                                     ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
+    set shape "couple"                                                                                                                                   ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 50
     set perception_recycling 70
     set acceptance_rate_incentives Acceptance_rate_Incentives_couples / 100
@@ -99,7 +96,6 @@ to setup
     set size 1
     set shape "family"
     layout-circle (sort turtles) max-pxcor - 7
-    set waste 40 * 2                                                                                                                                       ; 40 is base waste while 2 is the factor for families (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 60
     set perception_recycling 30
     set acceptance_rate_incentives Acceptance_rate_Incentives_families / 100
@@ -116,7 +112,7 @@ to setup
     set size 3
     set shape "rec"
     setxy  random-pycor -12
-    set capacity 500
+    set capacity 5000
   ]
   set month 0
   reset-ticks
@@ -132,7 +128,8 @@ to go
   rec_companies-equation
   unsorted-equation
   rec_companies_recycling_rate-equation
-  if month mod 36 = 0 [contract-equation]
+ reset_contract
+ if month mod 36 = 0 [contract-equation]
   tick
 end
 
@@ -226,6 +223,13 @@ to rec_companies-equation
     set postsorting_unsorted postsorting_unsorted_random / 100 * unsorted
     set recycling_process_unsorted recycling_process_unsorted_random / 100 * postsorting_unsorted
     ]
+                                                                                                                           ; from here is new
+    ask rec_companies [
+    set average_technology average_technology + postsorting_presorted_random + postsorting_unsorted_random ]
+  ask rec_companies [
+    if month mod 36 = 0 [
+    set average_technology average_technology / 72
+  ]]
 end
 
 to rec_companies_recycling_rate-equation
@@ -244,10 +248,18 @@ to contract-equation
   let sumofwaste sum [waste] of (turtle-set singles olds families couples )
   let sumofcontract_capacity sum [contract_capacity] of rec_companies
   while [sumofwaste > sumofcontract_capacity] [
-    ask rec_companies with [(contract_capacity < capacity) and (rec_companies with-max [average_technology)] [
-      set contract_capacity
-
-  ]]]
+    ask rec_companies with [contract_capacity = 0] [
+      ask rec_companies with-max[average_technology] [
+        if capacity <= ( sumofwaste - sumofcontract_capacity ) [
+          set contract_capacity capacity
+          set contract contract_capacity / sumofwaste
+        ]
+        if capacity > ( sumofwaste - sumofcontract_capacity ) [
+          set contract_capacity ( sumofwaste - sumofcontract_capacity )
+          set contract contract_capacity / sumofwaste
+        ]
+  ]]
+  set sumofcontract_capacity sum [contract_capacity] of rec_companies]
 end
 
 to reset_contract
@@ -351,9 +363,9 @@ SLIDER
 267
 number_rec_companies
 number_rec_companies
-0
+1
 10
-1.0
+5.0
 1
 1
 NIL
@@ -588,6 +600,43 @@ PENS
 "recycling output" 1.0 0 -16777216 true "" "plot mean [recycling_process_unsorted] of rec_companies"
 "unsorted waste input" 1.0 0 -6759204 true "" "plot mean [input] of rec_companies"
 
+PLOT
+1105
+15
+1577
+504
+contract in %
+NIL
+NIL
+0.0
+240.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean [contract_capacity] of rec_companies"
+
+PLOT
+493
+275
+1082
+720
+plot 1
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"pen-1" 1.0 0 -7500403 true "" "plot mean [waste] of (turtle-set families olds couples singles) * count (turtle-set singles olds families couples)"
+"pen-2" 1.0 0 -2674135 true "" "plot mean [contract_capacity] of rec_companies * count rec_companies"
+
 @#$#@#$#@
 Households have
 -perception_rate: Describes how important recycling is to the household
@@ -668,7 +717,6 @@ if Budget of Municipality > 0:
        set knowledge_recycling + random number between  e.g. 0 and 4
        set perception_recycling + random number between  e.g. 0 and 4
        set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
 
 
 
