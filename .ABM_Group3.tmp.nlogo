@@ -209,7 +209,7 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
   let recycling_process_presorted_random one-of (range 70 85)
   ask rec_companies [
-    set presorted sumofpresorted
+    set presorted sumofpresorted * contract
     set technology_presorted one-of (range 80 90)
     set postsorting_presorted technology_presorted / 100 * presorted
     set recycling_process_presorted recycling_process_presorted_random / 100 * postsorting_presorted
@@ -217,7 +217,7 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   let sumofunsorted sum [ unsorted ] of (turtle-set singles olds families couples )
   let recycling_process_unsorted_random one-of (range 55 70)
   ask rec_companies [
-    set unsorted sumofunsorted
+    set unsorted sumofunsorted * contract
     set technology_presorted one-of (range 40 60)
     set postsorting_unsorted technology_presorted / 100 * unsorted
     set recycling_process_unsorted recycling_process_unsorted_random / 100 * postsorting_unsorted
@@ -233,7 +233,12 @@ end
 
 to rec_companies_recycling_rate-equation ; calculate the recycling rate of each recycling company and determine the variable input = unsorted waste
   ask rec_companies [
+    if (presorted + unsorted) = 0 [
+      set recycling_rate 0
+    ]
+    if (presorted + unsorted) != 0 [
     set recycling_rate (recycling_process_unsorted + recycling_process_presorted) / (presorted + unsorted)
+    ]
   ]
   let sumofwaste sum [ waste ] of (turtle-set singles olds families couples )
   let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
@@ -264,7 +269,7 @@ end
 to reset_contract ;reset the assigned capacity of ech recycling company
   ask rec_companies [
     set contract_capacity 0
-
+    set contract 0
   ]
 end
 
@@ -603,10 +608,10 @@ PENS
 "unsorted waste input" 1.0 0 -6759204 true "" "plot mean [input] of rec_companies"
 
 PLOT
-668
-212
-1156
-674
+756
+275
+1244
+737
 plot 1
 NIL
 NIL
@@ -619,6 +624,24 @@ true
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks contract\n]"
+
+PLOT
+543
+429
+1012
+758
+plot 2
+ticks
+presorted
+0.0
+240.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"pen-0" 1.0 0 -7500403 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks presorted\n]"
 
 @#$#@#$#@
 Households have
