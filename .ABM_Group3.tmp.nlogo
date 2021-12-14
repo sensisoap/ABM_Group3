@@ -648,10 +648,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (unsorted)\n  ]"
 
 PLOT
-382
-126
-1181
-682
+746
+663
+946
+813
 plot 3
 NIL
 NIL
@@ -663,7 +663,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot sum [unsorted] of rec_companies"
+"default" 1.0 0 -16777216 true "" "plot sum [unsorted] of rec_companies -10"
 "pen-1" 1.0 0 -7500403 true "" "plot sum [unsorted] of (turtle-set singles olds families couples)"
 
 @#$#@#$#@
