@@ -707,7 +707,7 @@ Was kommt moch rein
 
 budget municipality
 technology verbesserung im jahr
-decreasing 
+
 
 
 Assumptions
