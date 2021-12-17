@@ -113,6 +113,8 @@ to setup
     let one (number_old + number_single + number_couple + number_family) * 42  / number_rec_companies
     set capacity one-of (range one (one * 1.2))
     set contract 1 / number_rec_companies
+    set presorting_base 80
+    set postsorting_base 50
   ]
   set month 0
   reset-ticks
@@ -124,12 +126,14 @@ to go
   if month mod 12 = 0 [incentivice]                                                                                                                        ; every 12 month incentives are set
   recycling_rate-equation
   potential-equation
+;  if month mod 12 = 0 [improve_technology]
   recycled_plastics-equation
   rec_companies-equation
   rec_companies_recycling_rate-equation
   unsorted-equation
   if month mod 36 = 0 [reset_contract]
- if month mod 36 = 0 [contract-equation]
+  if month mod 36 = 0 [contract-equation]
+
   tick
 end
 
@@ -211,7 +215,8 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   let recycling_process_presorted_random one-of (range 70 85)
   ask rec_companies [
     set presorted sumofpresorted * contract
-    set technology_presorted one-of (range -10 10) + 50
+    set technology_presorted presorting_base + one-of (range -10 10)
+    ;if technology_presorted > 100 [ set technology_presorted 100 ]
     set postsorting_presorted technology_presorted / 100 * presorted
     set recycling_process_presorted recycling_process_presorted_random / 100 * postsorting_presorted
   ]
@@ -224,7 +229,8 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   let recycling_process_unsorted_random one-of (range 55 70)
   ask rec_companies [
     set unsorted sumofunsorted * contract
-    set technology_unsorted one-of (range 40 60)
+    set technology_unsorted postsorting_base + one-of (range -10 10)
+   ; if technology_unsorted > 100 [set technology_unsorted 100]
     set postsorting_unsorted technology_unsorted / 100 * unsorted * plastic_in_unsorted
     set recycling_process_unsorted recycling_process_unsorted_random / 100 * postsorting_unsorted
     ]
@@ -291,20 +297,22 @@ to improve_technology
       set presorting_base presorting_base + one-of (range 0 2)
       set postsorting_base postsorting_base + one-of (range 0 2)
     ]
-    if contract_capacity / capacity < 1 and contract_capacity / capacity > 0.75[
+    if (contract_capacity / capacity) < 1 and (contract_capacity / capacity) >= 0.75 [
       set capacity capacity * (1 + one-of (range 0 10 ) / 100)
       set presorting_base presorting_base + one-of (range 0 3)
       set postsorting_base postsorting_base + one-of (range 0 3)
     ]
-    if contract_capacity / capacity < 0.75 and contract_capacity / capacity > 0.25[
+    if (contract_capacity / capacity) < 0.75 and (contract_capacity / capacity) >= 0.25 [
+      set capacity capacity * ( 1 - one-of (range 5 10 ) / 100)
       set presorting_base presorting_base + one-of (range 1 4)
       set postsorting_base postsorting_base + one-of (range 1 4)
     ]
-    if contract_capacity / capacity < 0.25 [
-        set presorting_base presorting_base + one-of (range 2 4)
+      if (contract_capacity / capacity) < 0.25 [
+      set capacity capacity * ( 1 - one-of (range 10 15 ) / 100)
+      set presorting_base presorting_base + one-of (range 2 4)
       set postsorting_base postsorting_base + one-of (range 2 4)
     ]
-]
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -404,7 +412,7 @@ number_rec_companies
 number_rec_companies
 1
 10
-4.0
+2.0
 1
 1
 NIL
@@ -694,8 +702,25 @@ true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract)\n  ]"
-"pen-1" 1.0 0 -7500403 true "" "plot sum [contract] of rec_companies"
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract_capacity / capacity)\n  ]"
+
+PLOT
+1455
+706
+1655
+856
+plot 3
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks capacity\n  ]"
 
 @#$#@#$#@
 Must have
@@ -792,7 +817,6 @@ if Budget of Municipality > 0:
        set knowledge_recycling + random number between  e.g. 0 and 4
        set perception_recycling + random number between  e.g. 0 and 4
        set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
 
 
 
