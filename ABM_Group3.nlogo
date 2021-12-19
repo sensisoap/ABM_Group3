@@ -64,6 +64,7 @@ rec_companies-own [ postsorting_presorted
 
 to setup
   clear-all
+  setup_patches
   create-olds number_old [
     set color blue
     set size 1
@@ -133,13 +134,16 @@ to go
   unsorted-equation
   if month mod 36 = 0 [reset_contract]
   if month mod 36 = 0 [contract-equation]
-
+  make_stupid
   tick
 end
 
 
-
-
+to setup_patches
+  ask patches [
+    if pxcor = 2 and pycor = 10 [ set pcolor white]
+  ]
+end
 to count_months ; counter of months to count time
   set month month + 1
 end
@@ -164,16 +168,21 @@ to incentivice ; Municipalty Incentivice housholds with 2 options: General incen
 
   if tickrange <= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
     let j one-of (range 5 15)
-    ask (turtle-set olds singles families couples) with-max [ potential ]  [
+    ask (turtle-set olds singles families couples) with-max [ potential ] [
         if perception_recycling < 100 [
             set perception_recycling perception_recycling + j * acceptance_rate_incentives
         if knowledge_recycling < 100 [
             set knowledge_recycling knowledge_recycling + j * acceptance_rate_incentives
-
-  ]]]]
+  ]]]
   ask (turtle-set singles olds families couples ) [
     if perception_recycling > 100 [set perception_recycling 100]
     if knowledge_recycling > 100 [set knowledge_recycling 100 ]
+  ]]
+end
+
+to make_stupid
+  ask (turtle-set singles olds families couples) [
+    set perception_recycling perception_recycling - 0.1
   ]
 end
 
@@ -411,8 +420,8 @@ SLIDER
 number_rec_companies
 number_rec_companies
 1
-10
-2.0
+4
+1.0
 1
 1
 NIL
@@ -461,17 +470,17 @@ Specified_Investment
 Specified_Investment
 0
 100
-90.0
+50.0
 10
 1
 NIL
 HORIZONTAL
 
 PLOT
-673
-29
-942
-268
+855
+24
+1490
+506
 Presorting rate HH
 Ticks
 NIL
@@ -817,7 +826,6 @@ if Budget of Municipality > 0:
        set knowledge_recycling + random number between  e.g. 0 and 4
        set perception_recycling + random number between  e.g. 0 and 4
        set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
 
 
 
