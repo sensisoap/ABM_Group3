@@ -108,6 +108,7 @@ to setup
     set Budget 1000                                                                                                                                        ; new (Was bedeutet new?)
   ]
     setup-rec_companies
+
   set month 0
 
   reset-ticks
