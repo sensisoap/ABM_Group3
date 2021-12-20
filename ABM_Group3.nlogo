@@ -6,7 +6,6 @@ breed [ couples couple ]
 breed [ families family ]
 breed [ rec_companies rec_company ]
 
-turtles-own [ waste ]                                                                 ; anpassen mun & rec kein waste
 municipalities-own [ Budget
   contract
 ]
@@ -18,6 +17,7 @@ olds-own [ acceptance_rate_incentives                                           
   potential
   unsorted
   waste_base
+  waste
 ]
 singles-own [ acceptance_rate_incentives
   perception_recycling
@@ -27,6 +27,7 @@ singles-own [ acceptance_rate_incentives
   potential
   unsorted
   waste_base
+  waste
 ]
 couples-own [ acceptance_rate_incentives
   perception_recycling
@@ -36,6 +37,7 @@ couples-own [ acceptance_rate_incentives
   potential
   unsorted
   waste_base
+  waste
 ]
 families-own [ acceptance_rate_incentives
   perception_recycling
@@ -45,6 +47,7 @@ families-own [ acceptance_rate_incentives
   potential
   unsorted
   waste_base
+  waste
 ]
 rec_companies-own [ postsorting_presorted
   recycling_process_presorted
@@ -64,6 +67,7 @@ rec_companies-own [ postsorting_presorted
   average_technology
   presorting_base
   postsorting_base
+  waste
 ]
 
 to setup
@@ -113,7 +117,7 @@ to setup
     set color pink
     set size 3
     set shape "mun"
-    set Budget 1000                                                                                                                                        ; new (Was bedeutet new?)
+    set Budget (number_old + number_single + number_family + number_couple ) * 100
   ]
     setup-rec_companies
 
@@ -121,7 +125,6 @@ to setup
 
   reset-ticks
 end
-
 to setup-rec_companies
   ask n-of number_rec_companies ( patches with [pcolor = blue ]) [sprout-rec_companies 1]
     ask rec_companies[
@@ -134,7 +137,6 @@ to setup-rec_companies
     set postsorting_base one-of (range 45 50)
   ]
 end
-
 to setup_patches
   ask patches [
     if number_rec_companies = 1 [
@@ -178,7 +180,10 @@ to go                                                                           
   if month mod 12 = 0 [incentivice]
 
   ;;Recycling companies Functions
-  if month mod 12 = 0 [improve_technology]
+  if Improve_technology_Options = "contract_size" [
+    if month mod 12 = 0 [improve_technology_v1]]
+  if Improve_technology_Options = "utilization" [
+    if month mod 12 = 0 [improve_technology_v2]]
   rec_companies-equation
   rec_companies_recycling_rate-equation
   if month mod 36 = 0 [reset_contract]
@@ -199,18 +204,20 @@ end
 
 to incentivice ; Municipalty Incentivice housholds with 2 options: General incentivice all households and specific incentivice only one houshold
   let tickrange one-of (range 1 99)                                                                                                                         ; generate random number between 1 and 99
-
   if tickrange >= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrnage value is larger or equal to the specific_investment value a general inventive is chosen
     let i one-of (range 1 4)
+    ask municipalities [ if budget > (number_old + number_single + number_family + number_couple ) * 3 [
     ask (turtle-set olds singles families couples) [
         if perception_recycling < 100 [
           set perception_recycling perception_recycling + i * acceptance_rate_incentives                                                                    ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
         if knowledge_recycling < 100 [
           set knowledge_recycling knowledge_recycling + i * acceptance_rate_incentives                                                                      ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
-  ]]]]
+  ]]]
+      set budget budget - (number_old + number_single + number_family + number_couple ) * 3]]]
 
   if tickrange <= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
     let j one-of (range 5 15)
+    ask municipalities [ if budget > count (turtle-set olds singles families couples) with-max [ potential ] * 20 [
     ask (turtle-set olds singles families couples) with-max [ potential ] [
         if perception_recycling < 100 [
             set perception_recycling perception_recycling + j * acceptance_rate_incentives
@@ -220,7 +227,8 @@ to incentivice ; Municipalty Incentivice housholds with 2 options: General incen
   ask (turtle-set singles olds families couples ) [
     if perception_recycling > 100 [set perception_recycling 100]
     if knowledge_recycling > 100 [set knowledge_recycling 100 ]
-  ]]
+  ]
+      set budget budget - count (turtle-set olds singles families couples) with-max [ potential ] * 20]]]
 end
 
 to make_stupid
@@ -289,8 +297,8 @@ to rec_companies-equation ; simulate the recycling facilities and return average
     set postsorting_unsorted technology_unsorted / 100 * unsorted * plastic_in_unsorted
     set recycling_process_unsorted recycling_process_unsorted_random / 100 * postsorting_unsorted
     ]
-  ask rec_companies with [recycling_rate != 0 ] [
-    set average_technology average_technology + 0.5 * technology_presorted / 100 + 0.5 * technology_presorted / 100  ;; replace 0,5 with procent of processed type of waste
+  ask rec_companies with [presorted != 0 ] [
+    set average_technology average_technology + (presorted / (presorted + unsorted)) * technology_presorted / 100 + (unsorted / (presorted + unsorted)) * technology_unsorted / 100  ;; replace 0,5 with procent of processed type of waste
   ]
 
 end
@@ -306,7 +314,7 @@ to rec_companies_recycling_rate-equation ; calculate the recycling rate of each 
     set recycling_rate (recycling_process_unsorted + recycling_process_presorted) / (presorted + unsorted)
     ]
   ]
-
+  ask rec_companies [ if recycling_rate = 0 [die]]
  ask rec_companies [
    set input sumofwaste - sumofpresorted
   ]
@@ -341,17 +349,42 @@ to reset_contract ;reset the assigned capacity of ech recycling company
   ]
 end
 
-to improve_technology
+to improve_technology_v1
   ask rec_companies with-max [contract] [
-      set capacity capacity * ( 1 + one-of (range 0 5) / 100)
-      set presorting_base presorting_base + one-of (range 0 2)
-      set postsorting_base postsorting_base + one-of (range 0 2)
+      set capacity capacity * ( 1 + one-of (range 5 10) / 100)
+      set presorting_base presorting_base - one-of (range 0 2)
+      set postsorting_base postsorting_base - one-of (range 0 2)
   ]
   ask rec_companies with-min [contract] [
       set capacity capacity * ( 1 - one-of (range 5 10) / 100)
       set presorting_base presorting_base + one-of (range 2 4)
       set postsorting_base postsorting_base + one-of (range 2 4)
   ]
+  ask rec_companies [
+    set capacity capacity * ( 1 + one-of (range 0 3) / 100)
+      set presorting_base presorting_base + one-of (range 0 2)
+      set postsorting_base postsorting_base + one-of (range 0 2)
+  ]
+  ask rec_companies [ if presorting_base > 100 [set presorting_base 100]]
+end
+
+to improve_technology_v2
+  ask rec_companies with-max [contract_capacity / capacity] [
+      set capacity capacity * ( 1 + one-of (range 5 10) / 100)
+      set presorting_base presorting_base - one-of (range 0 2)
+      set postsorting_base postsorting_base - one-of (range 0 2)
+  ]
+  ask rec_companies with-min [contract_capacity / capacity] [
+      set capacity capacity * ( 1 - one-of (range 5 10) / 100)
+      set presorting_base presorting_base + one-of (range 2 4)
+      set postsorting_base postsorting_base + one-of (range 2 4)
+  ]
+  ask rec_companies [
+    set capacity capacity * ( 1 + one-of (range 0 3) / 100)
+      set presorting_base presorting_base + one-of (range 0 2)
+      set postsorting_base postsorting_base + one-of (range 0 2)
+  ]
+  ask rec_companies [ if presorting_base > 100 [set presorting_base 100]]
 end
 
 to fix_utilisation
@@ -431,7 +464,7 @@ INPUTBOX
 215
 398
 number_family
-1.0
+80.0
 1
 0
 Number
@@ -442,7 +475,7 @@ INPUTBOX
 110
 399
 number_couple
-1.0
+50.0
 1
 0
 Number
@@ -505,7 +538,7 @@ Specified_Investment
 Specified_Investment
 0
 100
-50.0
+100.0
 10
 1
 NIL
@@ -615,7 +648,7 @@ Acceptance_rate_Incentives_singles
 Acceptance_rate_Incentives_singles
 0
 100
-90.0
+100.0
 10
 1
 NIL
@@ -652,9 +685,9 @@ NIL
 HORIZONTAL
 
 PLOT
-941
+1615
 15
-1286
+1960
 374
 Recycling Companies Presorted Process
 ticks
@@ -703,20 +736,19 @@ NIL
 0.0
 240.0
 0.0
-10.0
+1.0
 true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (unsorted)\n  ]"
-"rec Comp" 1.0 0 -7500403 true "" "plot sum [unsorted] of rec_companies"
-"hh" 1.0 0 -2674135 true "" "plot sum [unsorted] of (turtle-set singles olds couples families)"
+"hh" 1.0 0 -2674135 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract)\n  ]"
+"pen-1" 1.0 0 -7500403 true "" "plot sum [contract] of rec_companies"
 
 PLOT
-808
-388
-1331
-827
+1105
+389
+1628
+828
 Contarct colume
 NIL
 NIL
@@ -746,7 +778,7 @@ true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (presorting_base)\n  ]"
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (average_technology)\n  ]"
 
 PLOT
 1560
@@ -764,18 +796,44 @@ true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract)\n  ]"
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (capacity)\n  ]"
+
+CHOOSER
+357
+634
+547
+679
+Improve_Technology_Options
+Improve_Technology_Options
+"utilization" "contract_size"
+0
+
+MONITOR
+774
+320
+909
+365
+Budget of municipality
+mean [budget] of municipalities
+17
+1
+11
+
+MONITOR
+749
+412
+1251
+457
+NIL
+mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100
+2
+1
+11
 
 @#$#@#$#@
 Must have
 
 Data analysis --> reflektieren Assumptions EInfluss. Komplett sein
-
-
-Was kommt moch rein
-
-budget municipality
-technology verbesserung im jahr 
 
 
 Assumptions
@@ -860,7 +918,6 @@ if Budget of Municipality > 0:
        set knowledge_recycling + random number between  e.g. 0 and 4
        set perception_recycling + random number between  e.g. 0 and 4
        set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
 
 @#$#@#$#@
 default
