@@ -17,6 +17,7 @@ olds-own [ acceptance_rate_incentives                                           
   presorted                                                                           ; recycling rate * pre factor (== decide how much recplastic is in waste) * waste ;; define how much potential recyclable plastic is in waste
   potential
   unsorted
+  waste_base
 ]
 singles-own [ acceptance_rate_incentives
   perception_recycling
@@ -25,6 +26,7 @@ singles-own [ acceptance_rate_incentives
   presorted
   potential
   unsorted
+  waste_base
 ]
 couples-own [ acceptance_rate_incentives
   perception_recycling
@@ -33,6 +35,7 @@ couples-own [ acceptance_rate_incentives
   presorted
   potential
   unsorted
+  waste_base
 ]
 families-own [ acceptance_rate_incentives
   perception_recycling
@@ -41,6 +44,7 @@ families-own [ acceptance_rate_incentives
   presorted
   potential
   unsorted
+  waste_base
 ]
 rec_companies-own [ postsorting_presorted
   recycling_process_presorted
@@ -71,6 +75,7 @@ to setup
     set shape "elderly"
     set knowledge_recycling 20                                                                                                                              ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
     set perception_recycling 10
+    set waste_base 36
     set acceptance_rate_incentives Acceptance_rate_Incentives_olds / 100
     move-to one-of patches with [ pcolor = grey]
   ]
@@ -80,6 +85,7 @@ to setup
     set shape "person"
     set knowledge_recycling 30
     set perception_recycling 50
+    set waste_base 38
     set acceptance_rate_incentives Acceptance_rate_Incentives_singles / 100
     move-to one-of patches with [ pcolor = grey]
   ]
@@ -89,6 +95,7 @@ to setup
     set shape "couple"                                                                                                                                   ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
     set knowledge_recycling 50
     set perception_recycling 70
+    set waste_base 42
     set acceptance_rate_incentives Acceptance_rate_Incentives_couples / 100
     move-to one-of patches with [ pcolor = grey]
   ]
@@ -98,6 +105,7 @@ to setup
     set shape "family"
     set knowledge_recycling 60
     set perception_recycling 30
+    set waste_base 44
     set acceptance_rate_incentives Acceptance_rate_Incentives_families / 100
     move-to one-of patches with [ pcolor = grey]
   ]
@@ -108,6 +116,7 @@ to setup
     set Budget 1000                                                                                                                                        ; new (Was bedeutet new?)
   ]
     setup-rec_companies
+
   set month 0
 
   reset-ticks
@@ -121,37 +130,10 @@ to setup-rec_companies
     let one (number_old + number_single + number_couple + number_family) * 42  / number_rec_companies
     set capacity one-of (range one (one * 1.2))
     set contract 1 / number_rec_companies
-    set presorting_base 80
-    set postsorting_base 50
+    set presorting_base one-of (range 70 75)
+    set postsorting_base one-of (range 45 50)
   ]
 end
-
-to go                                                                                                                           ; sets the time limit of the model to 2 years
-  ;;General Functions
-  if month >= 240 [ stop ]
-  count_months
-
-  ;;Housholds function
-  waste-equation
-  recycling_rate-equation
-  potential-equation
-  make_stupid
-  unsorted-equation
-  recycled_plastics-equation
-
-  ;;Municipailty functions
-  if month mod 12 = 0 [incentivice]
-
-  ;;Recycling companies Functions
-; if month mod 12 = 0 [improve_technology]
-  rec_companies-equation
-  rec_companies_recycling_rate-equation
-  if month mod 36 = 0 [reset_contract]
-  if month mod 36 = 0 [contract-equation]
-
-  tick
-end
-
 
 to setup_patches
   ask patches [
@@ -179,13 +161,39 @@ to setup_patches
   ]
 end
 
+to go                                                                                                                           ; sets the time limit of the model to 2 years
+  ;;General Functions
+  if month >= 240 [ stop ]
+  count_months
+
+  ;;Housholds function
+  waste-equation
+  recycling_rate-equation
+  potential-equation
+  make_stupid
+  unsorted-equation
+  recycled_plastics-equation
+
+  ;;Municipailty functions
+  if month mod 12 = 0 [incentivice]
+
+  ;;Recycling companies Functions
+  if month mod 12 = 0 [improve_technology]
+  rec_companies-equation
+  rec_companies_recycling_rate-equation
+  if month mod 36 = 0 [reset_contract]
+  if month mod 36 = 0 [contract-equation]
+  if month < 12 [fix_utilisation]
+  tick
+end
+
 to count_months ; counter of months to count time
   set month month + 1
 end
 
 to waste-equation ; waste equation given depending on time
   ask (turtle-set singles olds families couples ) [
-    set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)
+    set waste waste_base - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)
   ]
 end
 
@@ -258,9 +266,13 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
   let recycling_process_presorted_random one-of (range 70 85)
   ask rec_companies [
+    if month mod 36 = 0 [
+     set average_technology average_technology / 36
+  ]]
+  ask rec_companies [
     set presorted sumofpresorted * contract
     set technology_presorted presorting_base + one-of (range -5 5)
-    ;if technology_presorted > 100 [ set technology_presorted 100 ]
+    if technology_presorted > 100 [ set technology_presorted 100 ]
     set postsorting_presorted technology_presorted / 100 * presorted
     set recycling_process_presorted recycling_process_presorted_random / 100 * postsorting_presorted
   ]
@@ -273,22 +285,18 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   ask rec_companies [
     set unsorted sumofunsorted * contract
     set technology_unsorted postsorting_base + one-of (range -10 10)
-   ; if technology_unsorted > 100 [set technology_unsorted 100]
+    if technology_unsorted > 100 [set technology_unsorted 100]
     set postsorting_unsorted technology_unsorted / 100 * unsorted * plastic_in_unsorted
     set recycling_process_unsorted recycling_process_unsorted_random / 100 * postsorting_unsorted
     ]
   ask rec_companies with [recycling_rate != 0 ] [
     set average_technology average_technology + 0.5 * technology_presorted / 100 + 0.5 * technology_presorted / 100  ;; replace 0,5 with procent of processed type of waste
   ]
-  ask rec_companies [
-    if month mod 36 = 0 [
-     set average_technology average_technology / 36
-  ]]
+
 end
 
 to rec_companies_recycling_rate-equation ; calculate the recycling rate of each recycling company and determine the variable input = unsorted waste
   let sumofwaste sum [ waste ] of (turtle-set singles olds families couples )
-
   let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
   ask rec_companies [
     if (presorted + unsorted) = 0 [
@@ -334,28 +342,21 @@ to reset_contract ;reset the assigned capacity of ech recycling company
 end
 
 to improve_technology
-  ask rec_companies[
-    if contract_capacity / capacity = 1 [
-      set capacity capacity * (1 + one-of (range 5 15 ) / 100)
+  ask rec_companies with-max [contract] [
+      set capacity capacity * ( 1 + one-of (range 0 5) / 100)
       set presorting_base presorting_base + one-of (range 0 2)
       set postsorting_base postsorting_base + one-of (range 0 2)
-    ]
-    if (contract_capacity / capacity) < 1 and (contract_capacity / capacity) >= 0.75 [
-      set capacity capacity * (1 + one-of (range 0 10 ) / 100)
-      set presorting_base presorting_base + one-of (range 0 3)
-      set postsorting_base postsorting_base + one-of (range 0 3)
-    ]
-    if (contract_capacity / capacity) < 0.75 and (contract_capacity / capacity) >= 0.25 [
-      set capacity capacity * ( 1 - one-of (range 5 10 ) / 100)
-      set presorting_base presorting_base + one-of (range 1 4)
-      set postsorting_base postsorting_base + one-of (range 1 4)
-    ]
-      if (contract_capacity / capacity) < 0.25 [
-      set capacity capacity * ( 1 - one-of (range 10 15 ) / 100)
+  ]
+  ask rec_companies with-min [contract] [
+      set capacity capacity * ( 1 - one-of (range 5 10) / 100)
       set presorting_base presorting_base + one-of (range 2 4)
       set postsorting_base postsorting_base + one-of (range 2 4)
-    ]
   ]
+end
+
+to fix_utilisation
+  ask rec_companies [
+    set contract_capacity presorted + unsorted]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
@@ -430,7 +431,7 @@ INPUTBOX
 215
 398
 number_family
-60.0
+1.0
 1
 0
 Number
@@ -441,7 +442,7 @@ INPUTBOX
 110
 399
 number_couple
-30.0
+1.0
 1
 0
 Number
@@ -614,7 +615,7 @@ Acceptance_rate_Incentives_singles
 Acceptance_rate_Incentives_singles
 0
 100
-70.0
+90.0
 10
 1
 NIL
@@ -692,25 +693,6 @@ PENS
 "unsorted waste input" 1.0 0 -6759204 true "" "plot mean [input] of rec_companies"
 
 PLOT
-1286
-15
-1665
-203
-plot 1
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (recycling_rate * 100)\n]"
-"pen-1" 1.0 0 -7500403 true "" "plot mean [technology_presorted] of rec_companies"
-
-PLOT
 585
 542
 1126
@@ -746,25 +728,43 @@ true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract_capacity / capacity)\n  ]"
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n if month mod 36 = 0 or month = 2[\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract_capacity / capacity)\n  ]]"
 
 PLOT
-1455
-706
-1655
-856
-plot 3
+1567
+22
+2012
+424
+plot 4
 NIL
 NIL
 0.0
-10.0
+240.0
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks capacity\n  ]"
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (presorting_base)\n  ]"
+
+PLOT
+1560
+420
+2010
+780
+plot 1
+NIL
+NIL
+0.0
+240.0
+0.0
+1.0
+true
+true
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract)\n  ]"
 
 @#$#@#$#@
 Must have
