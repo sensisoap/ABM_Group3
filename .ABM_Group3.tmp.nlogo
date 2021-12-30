@@ -84,8 +84,8 @@ to setup
     set color blue
     set size 1
     set shape "elderly"
-    set knowledge_recycling 20                                                                                                                              ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
-    set perception_recycling 10
+    set knowledge_recycling Knowledge_olds                                                                                                                              ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
+    set perception_recycling Perception_olds
     set waste_base 36
     set acceptance_rate_incentives Acceptance_rate_Incentives_olds / 100
     move-to one-of patches with [ pcolor = grey]
@@ -94,8 +94,8 @@ to setup
     set color green
     set size 1
     set shape "person"
-    set knowledge_recycling 30
-    set perception_recycling 50
+    set knowledge_recycling Knowledge_singles
+    set perception_recycling Perception_singles
     set waste_base 38
     set acceptance_rate_incentives Acceptance_rate_Incentives_singles / 100
     move-to one-of patches with [ pcolor = grey]
@@ -104,8 +104,8 @@ to setup
     set color yellow
     set size 1
     set shape "couple"                                                                                                                                   ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
-    set knowledge_recycling 50
-    set perception_recycling 70
+    set knowledge_recycling Knowledge_couples
+    set perception_recycling Perception_couples
     set waste_base 42
     set acceptance_rate_incentives Acceptance_rate_Incentives_couples / 100
     move-to one-of patches with [ pcolor = grey]
@@ -114,8 +114,8 @@ to setup
     set color cyan
     set size 1
     set shape "family"
-    set knowledge_recycling 60
-    set perception_recycling 30
+    set knowledge_recycling Knowledge_families
+    set perception_recycling Perception_families
     set waste_base 44
     set acceptance_rate_incentives Acceptance_rate_Incentives_families / 100
     move-to one-of patches with [ pcolor = grey]
@@ -550,7 +550,7 @@ number_rec_companies
 number_rec_companies
 1
 4
-3.0
+2.0
 1
 1
 NIL
@@ -599,7 +599,7 @@ Specified_Investment
 Specified_Investment
 0
 100
-100.0
+80.0
 10
 1
 NIL
@@ -610,7 +610,7 @@ PLOT
 72
 1764
 589
-Plastic Sorting Rates and Recycling Rate of City
+Plastic Sorting Rates of Housholds and Recycling Rate of City
 Ticks [Month]
 Rates [%]
 0.0
@@ -625,7 +625,8 @@ PENS
 "Families" 1.0 0 -11221820 true "" "plot mean [recycling_rate] of families"
 "Couples" 1.0 0 -1184463 true "" "plot mean [recycling_rate] of couples"
 "Olds" 1.0 0 -13345367 true "" "plot mean [recycling_rate] of olds "
-"Recycling rate city" 1.0 0 -16777216 true "" "if month > 1 [plot mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100 ]"
+"Recycling Rate City Regarding Waste" 1.0 0 -9276814 true "" "if month > 1 [plot mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100 ]"
+"Recycling Rate City Regarding Plastics" 1.0 0 -16777216 true "" "if month > 1 [plot (sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100]"
 
 PLOT
 732
@@ -656,20 +657,20 @@ Amount_recycable_plastic
 Amount_recycable_plastic
 0
 100
-60.0
+40.0
 10
 1
 %
 HORIZONTAL
 
 PLOT
-1450
-594
-1886
-834
-Absolute waste that could be recycled
-ticks
-Absolute waste that could be recycled
+0
+822
+702
+1124
+Highest Line Gets the INDIVIDUAL Incentive
+Ticks [Month]
+Absolute Plastic that could be recycled [Kg]
 0.0
 240.0
 0.0
@@ -678,16 +679,16 @@ true
 true
 "" ""
 PENS
-"olds" 1.0 0 -13840069 true "" "plot mean [waste] of olds * count olds * Amount_recycable_plastic / 100 -  mean [presorted] of olds * count olds"
-"singles" 1.0 0 -13345367 true "" "plot mean [waste] of singles * count singles * Amount_recycable_plastic / 100 -  mean [presorted] of singles * count singles"
-"families" 1.0 0 -1184463 true "" "plot mean [waste] of families * count families * Amount_recycable_plastic / 100 -  mean [presorted] of families * count families"
-"couples" 1.0 0 -2674135 true "" "plot mean [waste] of couples * count couples * Amount_recycable_plastic / 100 -  mean [presorted] of couples * count couples"
+"olds" 1.0 0 -13345367 true "" "plot mean [waste] of olds * count olds * Amount_recycable_plastic / 100 -  mean [presorted] of olds * count olds"
+"singles" 1.0 0 -10899396 true "" "plot mean [waste] of singles * count singles * Amount_recycable_plastic / 100 -  mean [presorted] of singles * count singles"
+"families" 1.0 0 -11221820 true "" "plot mean [waste] of families * count families * Amount_recycable_plastic / 100 -  mean [presorted] of families * count families"
+"couples" 1.0 0 -1184463 true "" "plot mean [waste] of couples * count couples * Amount_recycable_plastic / 100 -  mean [presorted] of couples * count couples"
 
 SLIDER
-0
-584
-239
-617
+105
+643
+331
+678
 Acceptance_rate_Incentives_olds
 Acceptance_rate_Incentives_olds
 0
@@ -699,10 +700,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-0
-624
-253
-657
+105
+683
+333
+718
 Acceptance_rate_Incentives_singles
 Acceptance_rate_Incentives_singles
 0
@@ -714,10 +715,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-0
-667
-239
-700
+105
+726
+333
+761
 Acceptance_rate_Incentives_families
 Acceptance_rate_Incentives_families
 0
@@ -729,10 +730,10 @@ NIL
 HORIZONTAL
 
 SLIDER
-0
-707
-258
-740
+105
+766
+336
+801
 Acceptance_rate_Incentives_couples
 Acceptance_rate_Incentives_couples
 0
@@ -744,13 +745,13 @@ NIL
 HORIZONTAL
 
 PLOT
-1615
-15
-1960
-374
-Recycling Companies Presorted Process
-ticks
-Waste and Plastic
+1772
+75
+2154
+593
+Recycling Companies Process with Presorted Waste
+Ticks [Month]
+Plastics
 0.0
 240.0
 0.0
@@ -760,17 +761,17 @@ true
 "" ""
 PENS
 "Plastic input" 1.0 0 -4539718 true "" "plot mean [presorted] of rec_companies"
-"postsorting Output" 1.0 0 -9276814 true "" "plot mean [postsorting_presorted] of rec_companies"
+"Postsorting Output" 1.0 0 -9276814 true "" "plot mean [postsorting_presorted] of rec_companies"
 "Recycling Outpput" 1.0 0 -16777216 true "" "plot mean [recycling_process_presorted] of rec_companies"
 
 PLOT
-1375
-772
-1711
-1107
-Recycling companies Unsorted Process
-Ticks
-Waste and Plastic
+1445
+609
+1765
+857
+Capacity of Recycling Companies
+Ticks [Month]
+Capacity [Kg]
 0.0
 240.0
 0.0
@@ -779,28 +780,25 @@ true
 true
 "" ""
 PENS
-"unsorted Plastic input " 1.0 0 -4539718 true "" "plot mean [unsorted] of rec_companies"
-"postsorting output" 1.0 0 -11053225 true "" "plot mean [postsorting_unsorted] of rec_companies"
-"recycling output" 1.0 0 -16777216 true "" "plot mean [recycling_process_unsorted] of rec_companies"
-"unsorted waste input" 1.0 0 -6759204 true "" "plot mean [input] of rec_companies"
+"pen-0" 1.0 0 -7500403 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (capacity)\n  ]"
 
 PLOT
-2155
-839
-2678
-1278
-Contarct colume
-NIL
-NIL
+1090
+609
+1435
+1124
+Capacity Utilisation [%] After Each Contract
+Ticks [Months]
+Capacity Utilisation [%]
 0.0
 240.0
 0.0
-1.0
+100.0
 true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n if month mod 36 = 0 or month = 2[\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract_capacity / capacity)\n  ]]"
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n if month mod 36 = 0 or month = 1[\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract_capacity / capacity * 100)\n  ]]"
 
 CHOOSER
 11
@@ -810,13 +808,13 @@ CHOOSER
 Improve_Technology_Options
 Improve_Technology_Options
 "utilization" "contract_size"
-1
+0
 
 MONITOR
-1134
-17
-1269
-62
+433
+15
+568
+60
 Budget of municipality
 mean [budget] of municipalities
 17
@@ -824,13 +822,13 @@ mean [budget] of municipalities
 11
 
 MONITOR
-1825
-547
-2327
-592
-NIL
-mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100
-2
+930
+15
+1124
+60
+Recycling Rate Regarding Plastics
+(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100
+1
 1
 11
 
@@ -855,11 +853,11 @@ Setup City
 1
 
 TEXTBOX
-14
-513
-273
-553
-Setup Households in Detail
+5
+613
+264
+653
+Setup Households in Detail ↓
 16
 0.0
 1
@@ -867,13 +865,229 @@ Setup Households in Detail
 MONITOR
 733
 16
-883
-62
-Recycling Rate
+919
+61
+Recycling Rate Regarding Waste
 mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100
-0
+1
 1
 11
+
+SLIDER
+346
+643
+519
+678
+Perception_olds
+Perception_olds
+0
+100
+10.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+529
+643
+702
+678
+Knowledge_olds
+Knowledge_olds
+0
+100
+20.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+345
+685
+518
+720
+Perception_singles
+Perception_singles
+0
+100
+50.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+529
+685
+702
+720
+Knowledge_singles
+Knowledge_singles
+0
+100
+30.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+343
+726
+516
+761
+Perception_families
+Perception_families
+0
+100
+50.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+530
+726
+703
+761
+Knowledge_families
+Knowledge_families
+0
+100
+60.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+530
+766
+703
+801
+Knowledge_couples
+Knowledge_couples
+0
+100
+60.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+345
+766
+518
+801
+Perception_couples
+Perception_couples
+0
+100
+70.0
+10
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+10
+654
+75
+674
+Olds
+16
+0.0
+1
+
+TEXTBOX
+10
+691
+81
+711
+Singles
+16
+0.0
+1
+
+TEXTBOX
+8
+733
+72
+753
+Families
+16
+0.0
+1
+
+TEXTBOX
+9
+773
+78
+793
+Couples
+16
+0.0
+1
+
+PLOT
+739
+609
+1082
+1125
+plot 1
+Ticks [Month]
+Contract Volume [% of City]
+0.0
+240.0
+0.0
+100.0
+true
+true
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n if month mod 36 = 0 or month = 1[\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract * 100)\n  ]]"
+
+PLOT
+1442
+863
+1765
+1125
+plot 2
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+true
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "if month mod 13 = 0 or month = 1[\n  ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (average_technology)\n  ]]"
+
+PLOT
+2159
+75
+2507
+595
+Recycling Companies Process with Unsorted Waste
+Ticks [Month]
+Waste and Plastics [Kg]
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -3026479 true "" "plot mean [unsorted] of rec_companies"
+"pen-1" 1.0 0 -7500403 true "" "plot mean [postsorting_unsorted] of rec_companies"
+"pen-2" 1.0 0 -16777216 true "" "plot mean [recycling_process_unsorted] of rec_companies"
 
 @#$#@#$#@
 Must have
