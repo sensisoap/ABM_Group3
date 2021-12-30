@@ -136,6 +136,10 @@ to setup-rec_companies
     set presorting_base one-of (range 70 75)
     set postsorting_base one-of (range 45 50)
   ]
+  ask rec_company 231 [set color red]
+  if number_rec_companies >= 2 [ ask rec_company 232 [set color violet]]
+  if number_rec_companies >= 3 [ ask rec_company 233 [set color yellow]]
+  if number_rec_companies = 4 [ ask rec_company 234 [ set color black]]
 end
 to setup_patches
   ask patches [
@@ -171,13 +175,17 @@ to go                                                                           
   ;;Housholds function
   waste-equation
   recycling_rate-equation
+  recycled_plastics-equation
   potential-equation
   make_stupid
   unsorted-equation
-  recycled_plastics-equation
+
+
 
   ;;Municipailty functions
   if month mod 12 = 0 [incentivice]
+  if month mod 36 = 1  [visualize]
+  ;if month = 1 [visualize]
 
   ;;Recycling companies Functions
   if Improve_technology_Options = "contract_size" [
@@ -391,12 +399,64 @@ to fix_utilisation
   ask rec_companies [
     set contract_capacity presorted + unsorted]
 end
+
+to visualize
+  ask patches with [pcolor = (red + 1) or pcolor = (violet + 1) or pcolor = (yellow + 2) or pcolor = (black + 3)] [ set pcolor grey]
+  let nenner count patches with [pcolor = grey]
+  let area1 0
+  let area2 0
+  let area3 0
+  let area4 0
+
+  if number_rec_companies = 1 [
+    set area1 round ([contract] of rec_company 231 * nenner)
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+  ]
+  if number_rec_companies = 2 [
+    if rec_company 231 != nobody [ set area1 round ([contract] of rec_company 231 * nenner)]
+    if rec_company 232 != nobody [set area2 round ([contract] of rec_company 232 * nenner)]
+    while [area1 + area2 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]]
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+    ask n-of area2 patches with [pcolor = grey] [set pcolor violet + 1 ]
+  ]
+
+  if number_rec_companies = 3 [
+    if rec_company 231 != nobody [ set area1 round ([contract] of rec_company 231 * nenner)]
+    if rec_company 232 != nobody [set area2 round ([contract] of rec_company 232 * nenner)]
+    if rec_company 233 != nobody [set area3 round ([contract] of rec_company 233 * nenner)]
+    while [area1 + area2 + area3 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]]
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+    ask n-of area2 patches with [pcolor = grey] [set pcolor violet + 1 ]
+    ask n-of area3 patches with [pcolor = grey] [set pcolor yellow + 2]
+  ]
+  if number_rec_companies = 4 [
+    if rec_company 231 != nobody [ set area1 round ([contract] of rec_company 231 * nenner)]
+    if rec_company 232 != nobody [set area2 round ([contract] of rec_company 232 * nenner)]
+    if rec_company 233 != nobody [set area3 round ([contract] of rec_company 233 * nenner)]
+    if rec_company 234 != nobody [set area4 round ([contract] of rec_company 234 * nenner)]
+    while [area1 + area2 + area3 + area4 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]
+      if area4 != 0 [set area4 area4 - 1]]
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+    ask n-of area2 patches with [pcolor = grey] [set pcolor violet + 1 ]
+    ask n-of area3 patches with [pcolor = grey] [set pcolor yellow + 2]
+    ask n-of area4 patches with [pcolor = grey] [set pcolor black + 3]
+  ]
+end
+
 @#$#@#$#@
 GRAPHICS-WINDOW
-283
-15
-720
-531
+284
+70
+721
+586
 -1
 -1
 13.0
@@ -420,10 +480,10 @@ ticks
 30.0
 
 BUTTON
-13
-28
-76
-61
+34
+17
+97
+50
 NIL
 setup
 NIL
@@ -437,10 +497,10 @@ NIL
 1
 
 INPUTBOX
-5
-276
-96
-336
+8
+112
+136
+172
 number_old
 50.0
 1
@@ -448,10 +508,10 @@ number_old
 Number
 
 INPUTBOX
-101
-276
-204
-336
+148
+112
+273
+172
 number_single
 50.0
 1
@@ -459,10 +519,10 @@ number_single
 Number
 
 INPUTBOX
-110
-338
-215
-398
+147
+183
+272
+243
 number_family
 80.0
 1
@@ -470,10 +530,10 @@ number_family
 Number
 
 INPUTBOX
-2
-339
-110
-399
+9
+183
+136
+243
 number_couple
 50.0
 1
@@ -481,25 +541,25 @@ number_couple
 Number
 
 SLIDER
-18
-234
-191
-267
+11
+396
+273
+430
 number_rec_companies
 number_rec_companies
 1
 4
-4.0
+3.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-15
-69
-90
-102
+109
+17
+173
+51
 go once
 go
 NIL
@@ -513,10 +573,10 @@ NIL
 1
 
 BUTTON
-109
-70
-172
-103
+184
+17
+247
+50
 go
 go
 T
@@ -530,10 +590,10 @@ NIL
 1
 
 SLIDER
-352
-549
-538
-582
+9
+250
+272
+283
 Specified_Investment
 Specified_Investment
 0
@@ -545,13 +605,13 @@ NIL
 HORIZONTAL
 
 PLOT
-855
-24
-1490
-506
-Presorting rate HH
-Ticks
-NIL
+1134
+72
+1764
+589
+Plastic Sorting Rates and Recycling Rate of City
+Ticks [Month]
+Rates [%]
 0.0
 240.0
 0.0
@@ -560,39 +620,37 @@ true
 true
 "" ""
 PENS
-"singles" 1.0 0 -13345367 true "" "plot mean [recycling_rate] of singles"
-"families" 1.0 0 -1184463 true "" "plot mean [recycling_rate] of families"
-"couples" 1.0 0 -2674135 true "" "plot mean [recycling_rate] of couples"
-"olds" 1.0 0 -13840069 true "" "plot mean [recycling_rate] of olds "
-"Recycling rate city" 1.0 0 -955883 true "" "if month > 1 [plot mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100 ]"
-"pen-5" 1.0 0 -7500403 true "" ""
+"Singles" 1.0 0 -10899396 true "" "plot mean [recycling_rate] of singles"
+"Families" 1.0 0 -11221820 true "" "plot mean [recycling_rate] of families"
+"Couples" 1.0 0 -1184463 true "" "plot mean [recycling_rate] of couples"
+"Olds" 1.0 0 -13345367 true "" "plot mean [recycling_rate] of olds "
+"Recycling rate city" 1.0 0 -16777216 true "" "if month > 1 [plot mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100 ]"
 
 PLOT
-1280
-22
-1718
-388
-Presorted plastic HH
-ticks
-Waste and Recycled waste 
+732
+72
+1124
+587
+Waste of City
+Ticks [Month]
+Amount of Good [KG]
 0.0
-240.0
+241.0
 0.0
 10.0
 true
 true
 "" ""
 PENS
-"presorted old" 1.0 0 -5509967 true "" "plot mean [presorted] of olds * count olds"
-"waste old" 1.0 0 -13840069 true "" "plot  mean [waste] of olds * count olds"
-"potential recycling olds" 1.0 0 -14333415 true "" "plot  mean [waste] of olds * count olds * Amount_recycable_plastic / 100"
-"unsorted old" 1.0 0 -6565750 true "" "plot  mean [unsorted] of olds * count olds * Amount_recycable_plastic / 100"
+"Waste of City" 1.0 0 -16777216 true "" "plot  sum [waste] of (turtle-set olds singles families couples)"
+"Plastic of City" 1.0 1 -9276814 true "" "plot  sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100"
+"Recycled Plastic of City" 1.0 1 -14333415 true "" "plot  sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies"
 
 SLIDER
-353
-593
-563
-626
+10
+291
+272
+324
 Amount_recycable_plastic
 Amount_recycable_plastic
 0
@@ -604,10 +662,10 @@ Amount_recycable_plastic
 HORIZONTAL
 
 PLOT
-1282
-390
-1718
-630
+1450
+594
+1886
+834
 Absolute waste that could be recycled
 ticks
 Absolute waste that could be recycled
@@ -626,9 +684,9 @@ PENS
 
 SLIDER
 0
-412
+584
 239
-445
+617
 Acceptance_rate_Incentives_olds
 Acceptance_rate_Incentives_olds
 0
@@ -641,9 +699,9 @@ HORIZONTAL
 
 SLIDER
 0
-453
+624
 253
-486
+657
 Acceptance_rate_Incentives_singles
 Acceptance_rate_Incentives_singles
 0
@@ -656,9 +714,9 @@ HORIZONTAL
 
 SLIDER
 0
-496
+667
 239
-529
+700
 Acceptance_rate_Incentives_families
 Acceptance_rate_Incentives_families
 0
@@ -671,9 +729,9 @@ HORIZONTAL
 
 SLIDER
 0
-536
+707
 258
-569
+740
 Acceptance_rate_Incentives_couples
 Acceptance_rate_Incentives_couples
 0
@@ -705,10 +763,10 @@ PENS
 "Recycling Outpput" 1.0 0 -16777216 true "" "plot mean [recycling_process_presorted] of rec_companies"
 
 PLOT
-943
-370
-1279
-705
+1375
+772
+1711
+1107
 Recycling companies Unsorted Process
 Ticks
 Waste and Plastic
@@ -726,29 +784,10 @@ PENS
 "unsorted waste input" 1.0 0 -6759204 true "" "plot mean [input] of rec_companies"
 
 PLOT
-585
-542
-1126
-787
-plot 2
-NIL
-NIL
-0.0
-240.0
-0.0
-1.0
-true
-true
-"" ""
-PENS
-"hh" 1.0 0 -2674135 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract)\n  ]"
-"pen-1" 1.0 0 -7500403 true "" "plot sum [contract] of rec_companies"
-
-PLOT
-1105
-389
-1628
-828
+2155
+839
+2678
+1278
 Contarct colume
 NIL
 NIL
@@ -762,57 +801,21 @@ true
 PENS
 "default" 1.0 0 -16777216 true "" "ask rec_companies [\n if month mod 36 = 0 or month = 2[\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract_capacity / capacity)\n  ]]"
 
-PLOT
-1567
-22
-2012
-424
-plot 4
-NIL
-NIL
-0.0
-240.0
-0.0
-10.0
-true
-true
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (average_technology)\n  ]"
-
-PLOT
-1560
-420
-2010
-780
-plot 1
-NIL
-NIL
-0.0
-240.0
-0.0
-1.0
-true
-true
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (capacity)\n  ]"
-
 CHOOSER
-357
-634
-547
-679
+11
+438
+272
+483
 Improve_Technology_Options
 Improve_Technology_Options
 "utilization" "contract_size"
-0
+1
 
 MONITOR
-774
-320
-909
-365
+1134
+17
+1269
+62
 Budget of municipality
 mean [budget] of municipalities
 17
@@ -820,15 +823,45 @@ mean [budget] of municipalities
 11
 
 MONITOR
-749
-412
-1251
-457
+1825
+547
+2327
+592
 NIL
 mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100
 2
 1
 11
+
+TEXTBOX
+14
+357
+264
+386
+Setup Recycling Companies
+16
+0.0
+1
+
+TEXTBOX
+10
+77
+234
+112
+Setup City
+16
+0.0
+1
+
+TEXTBOX
+14
+513
+273
+553
+Setup Households in Detail
+16
+0.0
+1
 
 @#$#@#$#@
 Must have
@@ -918,7 +951,6 @@ if Budget of Municipality > 0:
        set knowledge_recycling + random number between  e.g. 0 and 4
        set perception_recycling + random number between  e.g. 0 and 4
        set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
 @#$#@#$#@
 default
 true
