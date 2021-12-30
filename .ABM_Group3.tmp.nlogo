@@ -824,10 +824,10 @@ mean [budget] of municipalities
 11
 
 MONITOR
-682
-644
-1184
-689
+1825
+547
+2327
+592
 NIL
 mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100
 2
