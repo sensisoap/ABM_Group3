@@ -1218,8 +1218,8 @@ PLOT
 1411
 857
 Presorting Technology
-NIL
-NIL
+Ticks [Month]
+Success Rate for Presorted Waste [%]
 0.0
 240.0
 0.0
@@ -1256,8 +1256,8 @@ PLOT
 1407
 1127
 Technology Unsorted
-NIL
-NIL
+Ticks [Month]
+Success Rate for Unsorted Waste [%]
 0.0
 240.0
 0.0
