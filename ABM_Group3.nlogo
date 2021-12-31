@@ -186,8 +186,8 @@ to go                                                                           
 
   ;;Municipailty functions
   if month mod 12 = 0 [incentivice]
-  if month mod 36 = 1  [visualize]
-  ;if month = 1 [visualize]
+  if Visualization_Options = "Best_Performance" [if month mod 36 = 1  [visualize]]
+  if Visualization_Options = "Realistic" [if month mod 36 = 1  [visualize_v2]]
 
   ;;Recycling companies Functions
   if Improve_technology_Options = "contract_size" [
@@ -227,7 +227,7 @@ to incentivice ; Municipalty Incentivice housholds with 2 options: General incen
 
   if tickrange <= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
     let j one-of (range 5 15)
-    ask municipalities [ if budget > count (turtle-set olds singles families couples) with-max [ potential ] * 20 [
+    ask municipalities [ if budget > count (turtle-set olds singles families couples) with-max [ potential ] * 25 [
     ask (turtle-set olds singles families couples) with-max [ potential ] [
         if perception_recycling < 100 [
             set perception_recycling perception_recycling + j * acceptance_rate_incentives
@@ -238,7 +238,7 @@ to incentivice ; Municipalty Incentivice housholds with 2 options: General incen
     if perception_recycling > 100 [set perception_recycling 100]
     if knowledge_recycling > 100 [set knowledge_recycling 100 ]
   ]
-      set budget budget - count (turtle-set olds singles families couples) with-max [ potential ] * 20]]]
+      set budget budget - count (turtle-set olds singles families couples) with-max [ potential ] * 25]]]
 end
 
 to make_stupid
@@ -402,7 +402,7 @@ to fix_utilisation
     set contract_capacity presorted + unsorted]
 end
 
-to visualize
+to visualize ; Best performance
   ask patches with [pcolor = (red + 1) or pcolor = (violet + 1) or pcolor = (yellow + 2) or pcolor = (black + 3)] [ set pcolor grey]
   let nenner count patches with [pcolor = grey]
   let area1 0
@@ -452,6 +452,167 @@ to visualize
     ask n-of area4 patches with [pcolor = grey] [set pcolor black + 3]
   ]
 end
+
+to visualize_v2 ; The most realistic one
+  ask patches with [pcolor = (red + 1) or pcolor = (violet + 1) or pcolor = (yellow + 2) or pcolor = (black + 3)] [ set pcolor grey]
+  let nenner count patches with [pcolor = grey]
+  let area1 0
+  let area2 0
+  let area3 0
+  let area4 0
+  let redcheck count patches with [pcolor = red + 1]
+  let violetcheck count patches with [pcolor = violet + 1]
+  let yellowcheck count patches with [pcolor = yellow + 2]
+  let blackcheck count patches with [pcolor = black + 3]
+
+  if number_rec_companies = 1 [
+    set area1 round ([contract] of rec_company 1 * nenner)
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+  ]
+  if number_rec_companies = 2 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    while [area1 + area2 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]]
+    while [redcheck != area1] [
+      let redlist patches with [pcolor = grey]
+      ask n-of 1 redlist with-min [distance rec_company 1] [ set pcolor red + 1]
+      set redlist patches with [pcolor = grey]
+      set redcheck count patches with [pcolor = red + 1]
+  ]
+    while [violetcheck != area2] [
+      let violetlist patches with [pcolor = grey]
+      ask n-of 1 violetlist with-min [distance rec_company 2] [ set pcolor violet + 1]
+      set violetlist patches with [pcolor = grey]
+      set violetcheck count patches with [pcolor = violet + 1]
+]]
+
+  if number_rec_companies = 3 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    if rec_company 3 != nobody [set area3 round ([contract] of rec_company 3 * nenner)]
+    while [area1 + area2 + area3 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]]
+  while [redcheck != area1] [
+    let redlist patches with [pcolor = grey]
+      ask n-of 1 redlist with-min [distance rec_company 1] [ set pcolor red + 1]
+    set redlist patches with [pcolor = grey]
+    set redcheck count patches with [pcolor = red + 1]
+  ]
+  while [violetcheck != area2] [
+    let violetlist patches with [pcolor = grey]
+    ask n-of 1 violetlist with-min [distance rec_company 2] [ set pcolor violet + 1]
+    set violetlist patches with [pcolor = grey]
+    set violetcheck count patches with [pcolor = violet + 1]
+  ]
+    while [yellowcheck != area3] [
+    let yellowlist patches with [pcolor = grey]
+    ask n-of 1 yellowlist with-min [distance rec_company 3] [ set pcolor yellow + 2]
+    set yellowlist patches with [pcolor = grey]
+    set yellowcheck count patches with [pcolor = yellow + 2]
+  ]]
+
+  if number_rec_companies = 4 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    if rec_company 3 != nobody [set area3 round ([contract] of rec_company 3 * nenner)]
+    if rec_company 4 != nobody [set area4 round ([contract] of rec_company 4 * nenner)]
+    while [area1 + area2 + area3 + area4 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]
+      if area4 != 0 [set area4 area4 - 1]]
+    while [redcheck != area1] [
+      let redlist patches with [pcolor = grey]
+      ask n-of 1 redlist with-min [distance rec_company 1] [ set pcolor red + 1]
+        set redlist patches with [pcolor = grey]
+        set redcheck count patches with [pcolor = red + 1]
+  ]
+      while [violetcheck != area2] [
+        let violetlist patches with [pcolor = grey]
+        ask n-of 1 violetlist with-min [distance rec_company 2] [ set pcolor violet + 1]
+        set violetlist patches with [pcolor = grey]
+        set violetcheck count patches with [pcolor = violet + 1]
+  ]
+      while [yellowcheck != area3] [
+        let yellowlist patches with [pcolor = grey]
+        ask n-of 1 yellowlist with-min [distance rec_company 3] [ set pcolor yellow + 2]
+        set yellowlist patches with [pcolor = grey]
+        set yellowcheck count patches with [pcolor = yellow + 2]
+  ]
+          while [blackcheck != area4] [
+        let blacklist patches with [pcolor = grey]
+        ask n-of 1 blacklist with-min [distance rec_company 4] [ set pcolor black + 3]
+        set blacklist patches with [pcolor = grey]
+        set blackcheck count patches with [pcolor = black + 3]
+  ]]
+end
+
+to visualize_v3 ; looks like a circle
+  ask patches with [pcolor = (red + 1) or pcolor = (violet + 1) or pcolor = (yellow + 2) or pcolor = (black + 3)] [ set pcolor grey]
+  let nenner count patches with [pcolor = grey]
+  let area1 0
+  let area2 0
+  let area3 0
+  let area4 0
+  let redcheck count patches with [pcolor = red + 1]
+  let violetcheck count patches with [pcolor = violet + 1]
+  let yellowcheck count patches with [pcolor = yellow + 2]
+
+  if number_rec_companies = 1 [
+    set area1 round ([contract] of rec_company 1 * nenner)
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+  ]
+  if number_rec_companies = 2 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    while [area1 + area2 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]]
+  while [redcheck != area1] [
+    let redlist patches with [pcolor = grey]
+    ask n-of 1 redlist with-min [distance turtle 0] [ set pcolor red + 1
+    show distance rec_company 1]
+    set redlist patches with [pcolor = grey]
+    set redcheck count patches with [pcolor = red + 1]
+  ]
+  while [violetcheck != area2] [
+    let violetlist patches with [pcolor = grey]
+    ask n-of 1 violetlist with-min [distance turtle 0] [ set pcolor violet + 1]
+    set violetlist patches with [pcolor = grey]
+    set violetcheck count patches with [pcolor = violet + 1]
+  ]]
+
+  if number_rec_companies = 3 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    if rec_company 3 != nobody [set area3 round ([contract] of rec_company 3 * nenner)]
+    while [area1 + area2 + area3 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]]
+  while [redcheck != area1] [
+    let redlist patches with [pcolor = grey]
+      ask n-of 1 redlist with-min [distance turtle 0] [ set pcolor red + 1]
+    set redlist patches with [pcolor = grey]
+    set redcheck count patches with [pcolor = red + 1]
+  ]
+  while [violetcheck != area2] [
+    let violetlist patches with [pcolor = grey]
+    ask n-of 1 violetlist with-min [distance turtle 0] [ set pcolor violet + 1]
+    set violetlist patches with [pcolor = grey]
+    set violetcheck count patches with [pcolor = violet + 1]
+  ]
+  while [yellowcheck != area3] [
+    let yellowlist patches with [pcolor = grey]
+        ask n-of 1 yellowlist with-min [distance turtle 0] [ set pcolor yellow + 2]
+    set yellowlist patches with [pcolor = grey]
+    set yellowcheck count patches with [pcolor = yellow + 2]
+      ]]
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 284
@@ -467,8 +628,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -550,7 +711,7 @@ number_rec_companies
 number_rec_companies
 1
 4
-2.0
+4.0
 1
 1
 NIL
@@ -599,7 +760,7 @@ Specified_Investment
 Specified_Investment
 0
 100
-80.0
+100.0
 10
 1
 NIL
@@ -657,7 +818,7 @@ Amount_recycable_plastic
 Amount_recycable_plastic
 0
 100
-40.0
+60.0
 10
 1
 %
@@ -688,7 +849,7 @@ SLIDER
 105
 643
 331
-678
+676
 Acceptance_rate_Incentives_olds
 Acceptance_rate_Incentives_olds
 0
@@ -703,7 +864,7 @@ SLIDER
 105
 683
 333
-718
+716
 Acceptance_rate_Incentives_singles
 Acceptance_rate_Incentives_singles
 0
@@ -718,7 +879,7 @@ SLIDER
 105
 726
 333
-761
+759
 Acceptance_rate_Incentives_families
 Acceptance_rate_Incentives_families
 0
@@ -733,7 +894,7 @@ SLIDER
 105
 766
 336
-801
+799
 Acceptance_rate_Incentives_couples
 Acceptance_rate_Incentives_couples
 0
@@ -751,7 +912,7 @@ PLOT
 593
 Recycling Companies Process with Presorted Waste
 Ticks [Month]
-Plastics
+Plastics [Kg]
 0.0
 240.0
 0.0
@@ -765,9 +926,9 @@ PENS
 "Recycling Outpput" 1.0 0 -16777216 true "" "plot mean [recycling_process_presorted] of rec_companies"
 
 PLOT
-1445
-609
-1765
+1417
+600
+1737
 857
 Capacity of Recycling Companies
 Ticks [Month]
@@ -783,10 +944,10 @@ PENS
 "pen-0" 1.0 0 -7500403 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (capacity)\n  ]"
 
 PLOT
-1090
-609
-1435
-1124
+734
+600
+1079
+857
 Capacity Utilisation [%] After Each Contract
 Ticks [Months]
 Capacity Utilisation [%]
@@ -877,7 +1038,7 @@ SLIDER
 346
 643
 519
-678
+676
 Perception_olds
 Perception_olds
 0
@@ -892,7 +1053,7 @@ SLIDER
 529
 643
 702
-678
+676
 Knowledge_olds
 Knowledge_olds
 0
@@ -907,7 +1068,7 @@ SLIDER
 345
 685
 518
-720
+718
 Perception_singles
 Perception_singles
 0
@@ -922,7 +1083,7 @@ SLIDER
 529
 685
 702
-720
+718
 Knowledge_singles
 Knowledge_singles
 0
@@ -937,7 +1098,7 @@ SLIDER
 343
 726
 516
-761
+759
 Perception_families
 Perception_families
 0
@@ -952,7 +1113,7 @@ SLIDER
 530
 726
 703
-761
+759
 Knowledge_families
 Knowledge_families
 0
@@ -967,7 +1128,7 @@ SLIDER
 530
 766
 703
-801
+799
 Knowledge_couples
 Knowledge_couples
 0
@@ -982,7 +1143,7 @@ SLIDER
 345
 766
 518
-801
+799
 Perception_couples
 Perception_couples
 0
@@ -1034,11 +1195,11 @@ Couples
 1
 
 PLOT
-739
-609
-1082
-1125
-plot 1
+735
+865
+1079
+1127
+Company Assignment to % of City 
 Ticks [Month]
 Contract Volume [% of City]
 0.0
@@ -1052,22 +1213,22 @@ PENS
 "default" 1.0 0 -16777216 true "" "ask rec_companies [\n if month mod 36 = 0 or month = 1[\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract * 100)\n  ]]"
 
 PLOT
-1442
-863
-1765
-1125
-plot 2
+1087
+600
+1411
+857
+Presorting Technology
 NIL
 NIL
 0.0
-10.0
+240.0
 0.0
-10.0
+100.0
 true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "if month mod 13 = 0 or month = 1[\n  ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (average_technology)\n  ]]"
+"Recycling Company:" 1.0 0 -1 true "" "  ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (technology_presorted)\n  ]"
 
 PLOT
 2159
@@ -1088,6 +1249,34 @@ PENS
 "Unsorted Waste Input" 1.0 0 -3026479 true "" "plot mean [unsorted] of rec_companies"
 "Postsorting Output" 1.0 0 -7500403 true "" "plot mean [postsorting_unsorted] of rec_companies"
 "Recycling Output" 1.0 0 -16777216 true "" "plot mean [recycling_process_unsorted] of rec_companies"
+
+PLOT
+1087
+865
+1407
+1127
+Technology Unsorted
+NIL
+NIL
+0.0
+240.0
+0.0
+100.0
+true
+true
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "  ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (technology_unsorted)\n  ]"
+
+CHOOSER
+12
+495
+272
+540
+Visualization_Options
+Visualization_Options
+"Realistic" "Best_Performance"
+0
 
 @#$#@#$#@
 Must have
