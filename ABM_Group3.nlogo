@@ -7,7 +7,6 @@ breed [ families family ]
 breed [ rec_companies rec_company ]
 
 municipalities-own [ Budget
-  contract
 ]
 olds-own [ acceptance_rate_incentives                                                 ; acceptance_rate_incentives describes how well households react to incentives (cannot be influenced by incentives)
   perception_recycling                                                                ; describes how important recycling is perceived by the household  (can be influenced by incentives)
@@ -55,8 +54,6 @@ rec_companies-own [ postsorting_presorted
   recycling_process_unsorted
   technology_unsorted
   technology_presorted
-  contract
-  money
   presorted
   unsorted
   recycling_rate
@@ -66,7 +63,7 @@ rec_companies-own [ postsorting_presorted
   contract_capacity
   average_technology
   presorting_base
-  postsorting_base
+  unsorting_base
   waste
 ]
 
@@ -136,7 +133,7 @@ to setup-rec_companies
     set capacity one-of (range one (one * 1.2))
     set contract 1 / number_rec_companies
     set presorting_base one-of (range 70 75)
-    set postsorting_base one-of (range 45 50)
+    set unsorting_base one-of (range 45 50)
   ]
   ask rec_company 1 [set color red]
   if number_rec_companies >= 2 [ ask rec_company 2 [set color violet]]
@@ -302,7 +299,7 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   let recycling_process_unsorted_random one-of (range 55 70)
   ask rec_companies [
     set unsorted sumofunsorted * contract
-    set technology_unsorted postsorting_base + one-of (range -10 10)
+    set technology_unsorted unsorting_base + one-of (range -10 10)
     if technology_unsorted > 100 [set technology_unsorted 100]
     set postsorting_unsorted technology_unsorted / 100 * unsorted * plastic_in_unsorted
     set recycling_process_unsorted recycling_process_unsorted_random / 100 * postsorting_unsorted
@@ -363,17 +360,17 @@ to improve_technology_v1
   ask rec_companies with-max [contract] [
       set capacity capacity * ( 1 + one-of (range 5 10) / 100)
       set presorting_base presorting_base - one-of (range 0 2)
-      set postsorting_base postsorting_base - one-of (range 0 2)
+      set unsorting_base unsorting_base - one-of (range 0 2)
   ]
   ask rec_companies with-min [contract] [
       set capacity capacity * ( 1 - one-of (range 5 10) / 100)
       set presorting_base presorting_base + one-of (range 2 4)
-      set postsorting_base postsorting_base + one-of (range 2 4)
+      set unsorting_base unsorting_base + one-of (range 2 4)
   ]
   ask rec_companies [
     set capacity capacity * ( 1 + one-of (range 0 3) / 100)
       set presorting_base presorting_base + one-of (range 0 2)
-      set postsorting_base postsorting_base + one-of (range 0 2)
+      set unsorting_base unsorting_base + one-of (range 0 2)
   ]
   ask rec_companies [ if presorting_base > 100 [set presorting_base 100]]
 end
@@ -382,17 +379,17 @@ to improve_technology_v2
   ask rec_companies with-max [contract_capacity / capacity] [
       set capacity capacity * ( 1 + one-of (range 5 10) / 100)
       set presorting_base presorting_base - one-of (range 0 2)
-      set postsorting_base postsorting_base - one-of (range 0 2)
+      set unsorting_base unsorting_base - one-of (range 0 2)
   ]
   ask rec_companies with-min [contract_capacity / capacity] [
       set capacity capacity * ( 1 - one-of (range 5 10) / 100)
       set presorting_base presorting_base + one-of (range 2 4)
-      set postsorting_base postsorting_base + one-of (range 2 4)
+      set unsorting_base unsorting_base + one-of (range 2 4)
   ]
   ask rec_companies [
     set capacity capacity * ( 1 + one-of (range 0 3) / 100)
       set presorting_base presorting_base + one-of (range 0 2)
-      set postsorting_base postsorting_base + one-of (range 0 2)
+      set unsorting_base unsorting_base + one-of (range 0 2)
   ]
   ask rec_companies [ if presorting_base > 100 [set presorting_base 100]]
 end
