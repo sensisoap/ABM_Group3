@@ -129,8 +129,8 @@ to setup-rec_companies
     ask rec_companies[
     set size 3
     set shape "rec"
-    let one (number_old + number_single + number_couple + number_family) * 42  / number_rec_companies
-    set capacity one-of (range one (one * 1.2))
+    let bridge_setup_rec_companies (number_old + number_single + number_couple + number_family) * 42  / number_rec_companies
+    set capacity one-of (range bridge_setup_rec_companies (bridge_setup_rec_companies * 1.2))
     set contract 1 / number_rec_companies
     set presorting_base one-of (range 70 75)
     set unsorting_base one-of (range 45 50)
@@ -212,24 +212,24 @@ end
 to incentivice ; Municipalty Incentivice housholds with 2 options: General incentivice all households and specific incentivice only one houshold
   let tickrange one-of (range 1 99)                                                                                                                         ; generate random number between 1 and 99
   if tickrange >= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrnage value is larger or equal to the specific_investment value a general inventive is chosen
-    let i one-of (range 1 4)
+    let incentive_general one-of (range 1 4)
     ask municipalities [ if budget > (number_old + number_single + number_family + number_couple ) * 3 [
     ask (turtle-set olds singles families couples) [
         if perception_recycling < 100 [
-          set perception_recycling perception_recycling + i * acceptance_rate_incentives                                                                    ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
+          set perception_recycling perception_recycling + incentive_general * acceptance_rate_incentives                                                                    ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
         if knowledge_recycling < 100 [
-          set knowledge_recycling knowledge_recycling + i * acceptance_rate_incentives                                                                      ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
+          set knowledge_recycling knowledge_recycling + incentive_general * acceptance_rate_incentives                                                                      ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
   ]]]
       set budget budget - (number_old + number_single + number_family + number_couple ) * 3]]]
 
   if tickrange <= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
-    let j one-of (range 5 15)
+    let incentive_individual one-of (range 5 15)
     ask municipalities [ if budget > count (turtle-set olds singles families couples) with-max [ potential ] * 25 [
     ask (turtle-set olds singles families couples) with-max [ potential ] [
         if perception_recycling < 100 [
-            set perception_recycling perception_recycling + j * acceptance_rate_incentives
+            set perception_recycling perception_recycling + incentive_individual * acceptance_rate_incentives
         if knowledge_recycling < 100 [
-            set knowledge_recycling knowledge_recycling + j * acceptance_rate_incentives
+            set knowledge_recycling knowledge_recycling + incentive_individual * acceptance_rate_incentives
   ]]]
   ask (turtle-set singles olds families couples ) [
     if perception_recycling > 100 [set perception_recycling 100]
@@ -1273,7 +1273,7 @@ CHOOSER
 Visualization_Options
 Visualization_Options
 "Realistic" "Best_Performance"
-0
+1
 
 @#$#@#$#@
 Must have
