@@ -1830,6 +1830,75 @@ NetLogo 6.2.1
       <value value="&quot;utilization&quot;"/>
     </enumeratedValueSet>
   </experiment>
+  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <metric>[recycling_rate] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Perception_singles">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Knowledge_olds">
+      <value value="20"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Perception_families">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Perception_olds">
+      <value value="10"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Knowledge_families">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Knowledge_couples">
+      <value value="60"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Visualization_Options">
+      <value value="&quot;Best_Performance&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;contract_size&quot;"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Knowledge_singles">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Perception_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+  </experiment>
 </experiments>
 @#$#@#$#@
 @#$#@#$#@
