@@ -364,7 +364,7 @@ to improve_technology_v1
       set unsorting_base unsorting_base - one-of (range 0 2)
   ]
   ask rec_companies with-min [contract] [
-      set capacity capacity * ( 1 - one-of (range 5 10) / 100)
+      set capacity capacity * ( 1 - one-of (range 0 5) / 100)
       set presorting_base presorting_base + one-of (range 2 4)
       set unsorting_base unsorting_base + one-of (range 2 4)
   ]
@@ -383,7 +383,7 @@ to improve_technology_v2
       set unsorting_base unsorting_base - one-of (range 0 2)
   ]
   ask rec_companies with-min [contract_capacity / capacity] [
-      set capacity capacity * ( 1 - one-of (range 5 10) / 100)
+      set capacity capacity * ( 1 - one-of (range 0 5) / 100)
       set presorting_base presorting_base + one-of (range 2 4)
       set unsorting_base unsorting_base + one-of (range 2 4)
   ]
@@ -758,7 +758,7 @@ Specified_Investment
 Specified_Investment
 0
 100
-100.0
+50.0
 10
 1
 NIL
@@ -967,7 +967,7 @@ CHOOSER
 Improve_Technology_Options
 Improve_Technology_Options
 "utilization" "contract_size"
-1
+0
 
 MONITOR
 433
