@@ -695,7 +695,7 @@ INPUTBOX
 136
 243
 number_couple
-50.0
+100.0
 1
 0
 Number
@@ -709,7 +709,7 @@ number_rec_companies
 number_rec_companies
 1
 4
-4.0
+2.0
 1
 1
 NIL
@@ -758,7 +758,7 @@ Specified_Investment
 Specified_Investment
 0
 100
-50.0
+0.0
 10
 1
 NIL
@@ -1273,8 +1273,8 @@ CHOOSER
 540
 Visualization_Options
 Visualization_Options
-"Realistic" "Best_Performance"
-1
+"Realistic" "Best_Performance" "none"
+2
 
 @#$#@#$#@
 Must have
