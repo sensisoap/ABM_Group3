@@ -363,7 +363,7 @@ to improve_technology_v1
       set presorting_base presorting_base - one-of (range 0 2)
       set unsorting_base unsorting_base - one-of (range 0 2)
   ]
-  if count rec_companies > 1[ ask rec_companies with-min [contract] [
+  if  > 1[ ask rec_companies with-min [contract] [
       set capacity capacity * ( 1 - one-of (range 0 5) / 100)
       set presorting_base presorting_base + one-of (range 2 4)
       set unsorting_base unsorting_base + one-of (range 2 4)
@@ -382,7 +382,7 @@ to improve_technology_v2
       set presorting_base presorting_base - one-of (range 0 2)
       set unsorting_base unsorting_base - one-of (range 0 2)
   ]
-  if count rec_companies > 1[ ask rec_companies with-min [contract_capacity / capacity] [
+  if number_rec_companies > 1[ ask rec_companies with-min [contract_capacity / capacity] [
       set capacity capacity * ( 1 - one-of (range 0 5) / 100)
       set presorting_base presorting_base + one-of (range 2 4)
       set unsorting_base unsorting_base + one-of (range 2 4)
@@ -709,7 +709,7 @@ number_rec_companies
 number_rec_companies
 1
 4
-2.0
+4.0
 1
 1
 NIL
