@@ -1880,7 +1880,7 @@ NetLogo 6.2.1
       <value value="&quot;utilization&quot;"/>
     </enumeratedValueSet>
   </experiment>
-  <experiment name="Sophian part 2" repetitions="50" runMetricsEveryStep="true">
+  <experiment name="Distribution Test" repetitions="50" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
     <timeLimit steps="240"/>
@@ -1903,6 +1903,159 @@ NetLogo 6.2.1
     <enumeratedValueSet variable="number_family">
       <value value="50"/>
       <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;utilization&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="spec investment test" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>[recycling_rate] of olds</metric>
+    <metric>[recycling_rate] of singles</metric>
+    <metric>[recycling_rate] of couples</metric>
+    <metric>[recycling_rate] of families</metric>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;utilization&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Bubble old and family" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>[recycling_rate] of olds</metric>
+    <metric>[recycling_rate] of singles</metric>
+    <metric>[recycling_rate] of couples</metric>
+    <metric>[recycling_rate] of families</metric>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;utilization&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Bubble couple and singles" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>[recycling_rate] of olds</metric>
+    <metric>[recycling_rate] of singles</metric>
+    <metric>[recycling_rate] of couples</metric>
+    <metric>[recycling_rate] of families</metric>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="50"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
       <value value="95"/>
