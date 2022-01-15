@@ -758,7 +758,7 @@ Specified_Investment
 Specified_Investment
 0
 100
-50.0
+100.0
 10
 1
 NIL
@@ -1886,10 +1886,10 @@ NetLogo 6.2.1
     <timeLimit steps="240"/>
     <metric>sum [recycling_rate * contract] of rec_companies</metric>
     <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
-    <metric>[recycling_rate] of olds</metric>
-    <metric>[recycling_rate] of singles</metric>
-    <metric>[recycling_rate] of couples</metric>
-    <metric>[recycling_rate] of families</metric>
+    <metric>sum [recycling_rate] of olds / count olds</metric>
+    <metric>sum [recycling_rate] of singles / count singles</metric>
+    <metric>sum [recycling_rate] of couples / count couples</metric>
+    <metric>sum [recycling_rate] of families / count families</metric>
     <enumeratedValueSet variable="Amount_recycable_plastic">
       <value value="30"/>
     </enumeratedValueSet>
