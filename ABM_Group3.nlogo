@@ -7,17 +7,17 @@ breed [ couples couple ]
 breed [ families family ]
 breed [ rec_companies rec_company ]
 
-municipalities-own [ Budget
+municipalities-own [ Budget                            ; Money Municicpality have to spend on incentivizing
 ]
-olds-own [ acceptance_rate_incentives                                                 ; acceptance_rate_incentives describes how well households react to incentives (cannot be influenced by incentives)
-  perception_recycling                                                                ; describes how important recycling is perceived by the household  (can be influenced by incentives)
-  knowledge_recycling                                                                 ; describes to what extend households are educated on how to recycle (can be influenced by incentives)
-  recycling_rate                                                                      ; the recycling_rate is an equation derived from perception and knowledge
-  presorted                                                                           ; recycling rate * pre factor (== decide how much recplastic is in waste) * waste ;; define how much potential recyclable plastic is in waste
-  potential
-  unsorted
-  waste_base
-  waste
+olds-own [ acceptance_rate_incentives                  ; acceptance_rate_incentives describes how well households react to incentives (cannot be influenced by incentives)
+  perception_recycling                                 ; describes how important recycling is perceived by the household  (can be influenced by incentives)
+  knowledge_recycling                                  ; describes to what extend households are educated on how to recycle (can be influenced by incentives)
+  recycling_rate                                       ; the recycling_rate is an equation derived from perception and knowledge
+  presorted                                            ; recycling rate * pre factor (== decide how much recplastic is in waste) * waste ;; define how much potential recyclable plastic is in waste
+  potential                                            ; Decision  factor for a specified incentive. Calculated potential of an specified incentive
+  unsorted                                             ; waste flow of waste - presordted
+  waste_base                                           ; Base value for waste production
+  waste                                                ; Waste produced
 ]
 singles-own [ acceptance_rate_incentives
   perception_recycling
@@ -49,15 +49,15 @@ families-own [ acceptance_rate_incentives
   waste_base
   waste
 ]
-rec_companies-own [ postsorting_presorted
-  recycling_process_presorted
-  postsorting_unsorted
-  recycling_process_unsorted
-  technology_unsorted
+rec_companies-own [ postsorting_presorted              ; presorted wasteflow after postsorting
+  recycling_process_presorted                          ; presorted wasteflow after recycling
+  postsorting_unsorted                                 ; unsorted wasteflow after postsorting
+  recycling_process_unsorted                           ; unsorted wasteflow after recycling
+  technology_unsorted                                  ;
   technology_presorted
   presorted
   unsorted
-  recycling_rate
+  recycling_rate                                       ; Recycling rate of the rec_company
   input
   capacity
   contract
@@ -75,7 +75,7 @@ to setup
     set color pink
     set size 3
     set shape "mun"
-    set Budget (number_old + number_single + number_family + number_couple ) * 100
+    set Budget (number_old + number_single + number_family + number_couple ) * 100 ; houshold dependent budget calculation
   ]
   setup-rec_companies
   create-olds number_old [
@@ -101,7 +101,7 @@ to setup
     create-couples number_couple [
     set color yellow
     set size 1
-    set shape "couple"                                                                                                                                   ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
+    set shape "couple"
     set knowledge_recycling Knowledge_couples
     set perception_recycling Perception_couples
     set waste_base 42
@@ -126,11 +126,11 @@ to setup
   reset-ticks
 end
 to setup-rec_companies
-  ask n-of number_rec_companies ( patches with [pcolor = blue ]) [sprout-rec_companies 1]
+  ask n-of number_rec_companies ( patches with [pcolor = blue ]) [sprout-rec_companies 1] ; spawn rec company on blue patch
     ask rec_companies[
     set size 3
     set shape "rec"
-    let bridge_setup_rec_companies (number_old + number_single + number_couple + number_family) * 42  / number_rec_companies
+    let bridge_setup_rec_companies (number_old + number_single + number_couple + number_family) * 42  / number_rec_companies ;temporary value for capacity calculation
     set capacity one-of (range bridge_setup_rec_companies (bridge_setup_rec_companies * 1.2))
     set contract 1 / number_rec_companies
     set presorting_base one-of (range 70 75)
@@ -141,7 +141,7 @@ to setup-rec_companies
   if number_rec_companies >= 3 [ ask rec_company 3 [set color yellow]]
   if number_rec_companies = 4 [ ask rec_company 4 [ set color black]]
 end
-to setup_patches
+to setup_patches ; City design
   ask patches [
     if number_rec_companies = 1 [
       if pxcor = -15 and pycor = 18 [ set pcolor blue]
@@ -167,13 +167,13 @@ to setup_patches
   ]
 end
 
-to go                                                                                                                           ; sets the time limit of the model to 2 years
+to go
   ;;General Functions
-  if month >= 240 [ stop ]
+  if month >= 240 [ stop ] ;stop simulation after 240 ticks
   count_months
 
   ;;Housholds function
-  waste-equation
+  waste-equation ;
   recycling_rate-equation
   recycled_plastics-equation
   potential-equation
@@ -239,7 +239,7 @@ to incentivice ; Municipalty Incentivice housholds with 2 options: General incen
       set budget budget - count (turtle-set olds singles families couples) with-max [ potential ] * 25]]]
 end
 
-to make_stupid
+to make_stupid ;houshold forget knowledge and perception
   ask (turtle-set singles olds families couples) [
     set perception_recycling perception_recycling - 0.1
   ]
@@ -281,11 +281,11 @@ end
 to rec_companies-equation ; simulate the recycling facilities and return average technology
   let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
   let recycling_process_presorted_random one-of (range 70 85)
-  ask rec_companies [
+  ask rec_companies [        ;average technology calculation
     if month mod 36 = 0 [
      set average_technology average_technology / 36
   ]]
-  ask rec_companies [
+  ask rec_companies [            ;presorted processing
     set presorted sumofpresorted * contract
     set technology_presorted presorting_base + one-of (range -5 5)
     if technology_presorted > 100 [ set technology_presorted 100 ]
@@ -298,7 +298,7 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   let plastic_in_unsorted ((Amount_recycable_plastic / 100 * sumofwaste - sumofpresorted) / (sumofwaste - sumofpresorted))
   ;
   let recycling_process_unsorted_random one-of (range 55 70)
-  ask rec_companies [
+  ask rec_companies [           ; unsorted processing
     set unsorted sumofunsorted * contract
     set technology_unsorted unsorting_base + one-of (range -10 10)
     if technology_unsorted > 100 [set technology_unsorted 100]
@@ -328,12 +328,11 @@ to rec_companies_recycling_rate-equation ; calculate the recycling rate of each 
   ]
 end
 
-to contract-equation
+to contract-equation ;give contracts every 3 years
   let sumofwaste sum [waste] of (turtle-set singles olds families couples )
   let sumofcontract_capacity sum [contract_capacity] of rec_companies
   while [sumofwaste > sumofcontract_capacity] [
     let companies_list rec_companies with [contract_capacity = 0]
-    ;print companies_list
     ask companies_list with-max[average_technology] [
         if capacity <= ( sumofwaste - sumofcontract_capacity ) [
           set contract_capacity capacity
@@ -357,7 +356,7 @@ to reset_contract ;reset the assigned capacity of ech recycling company
   ]
 end
 
-to improve_technology_v1
+to improve_technology_v1 ;improve by contract size
   ask rec_companies with-max [contract] [
       set capacity capacity * ( 1 + one-of (range 5 10) / 100)
       set presorting_base presorting_base - one-of (range 0 2)
@@ -376,7 +375,7 @@ to improve_technology_v1
   ask rec_companies [ if presorting_base > 100 [set presorting_base 100]]
 end
 
-to improve_technology_v2
+to improve_technology_v2 ;improve by utilization
   ask rec_companies with-max [contract_capacity / capacity] [
       set capacity capacity * ( 1 + one-of (range 5 10) / 100)
       set presorting_base presorting_base - one-of (range 0 2)
@@ -395,12 +394,12 @@ to improve_technology_v2
   ask rec_companies [ if presorting_base > 100 [set presorting_base 100]]
 end
 
-to fix_utilisation
+to fix_utilisation ;for first year so that there is a realistic value
   ask rec_companies [
     set contract_capacity presorted + unsorted]
 end
 
-to visualize ; Best performance
+to visualize ; Best performance i guess
   ask patches with [pcolor = (red + 1) or pcolor = (violet + 1) or pcolor = (yellow + 2) or pcolor = (black + 3)] [ set pcolor grey]
   let nenner count patches with [pcolor = grey]
   let area1 0
@@ -709,7 +708,7 @@ number_rec_companies
 number_rec_companies
 1
 4
-2.0
+4.0
 1
 1
 NIL
@@ -1274,96 +1273,9 @@ CHOOSER
 Visualization_Options
 Visualization_Options
 "Realistic" "Best_Performance" "none"
-2
+0
 
 @#$#@#$#@
-Must have
-
-Data analysis --> reflektieren Assumptions EInfluss. Komplett sein
-
-
-Assumptions
-
-
-Households have
--perception_rate: Describes how important recycling is to the household
--knowlege_recycle: Describes the knowledge about how to recycle
--acceptance_rate_incentives: Describes the acceptance of incentives and policies
--recycling_rate: Is the rate of how well the household seperates the trash
-
-recycling_company
-have:
-*color --> property
-*shape --> property
-*technology --> ?
-	*sorting_effeciency
-	*recycling_efficency
-	*capacity
-
-Pesudocode:
-
-Initialization:
-	
-	Create agents (households) and evenly distribute them random in knowledge space
-
-	Create agent (municipality) in (0,0) of the knowledge space
-
-	Create given amount of agents (recycling companies) and place them on a fixed spot
-
-	Create classes for agent (households):
-		old
-		single
-		couple
-		family
-
-	Households own:
-		waste
-		access to collection infrastructure
-		perception for recycling
-		knowledge of how to recycle
-		acceptance rate for incentives
-
-	Municipality own:
-		Budget
-		desity
-		population distribution
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Pseudocode Muncicpality Incentivizing households
-
-
-;;in to go function: stop incentivizing e.g. if knowledge_recycling >= 100
-;; Include decide random as propability slider
-
-
-
-if Budget of Municipality > 0:
-	decide random: inventivize ALL-Agents (1) OR Incentivize SPECIFIC-Agent (2)
-
-(1)    Budget - incentivizing costs x4
-       set knowledge_recycling + random number between  e.g. 0 and 4
-       set perception_recycling + random number between  e.g. 0 and 4
-       set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
-(2)    choose which agent has lowest recycling rate
-       Budget - incentivizing costs x1
-       set knowledge_recycling + random number between  e.g. 0 and 4
-       set perception_recycling + random number between  e.g. 0 and 4
-       set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
 @#$#@#$#@
 default
 true
