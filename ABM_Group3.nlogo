@@ -1,4 +1,5 @@
-globals [ month ]
+globals [ month
+]
 breed [ municipalities municpality ]
 breed [ olds old ]
 breed [ singles single ]
@@ -6,17 +7,17 @@ breed [ couples couple ]
 breed [ families family ]
 breed [ rec_companies rec_company ]
 
-turtles-own [ waste ]                                                                 ; anpassen mun & rec kein waste
-municipalities-own [ Budget
-  contract
+municipalities-own [ Budget                            ; Money Municicpality have to spend on incentivizing
 ]
-olds-own [ acceptance_rate_incentives                                                 ; acceptance_rate_incentives describes how well households react to incentives (cannot be influenced by incentives)
-  perception_recycling                                                                ; describes how important recycling is perceived by the household  (can be influenced by incentives)
-  knowledge_recycling                                                                 ; describes to what extend households are educated on how to recycle (can be influenced by incentives)
-  recycling_rate                                                                      ; the recycling_rate is an equation derived from perception and knowledge
-  presorted                                                                           ; recycling rate * pre factor (== decide how much recplastic is in waste) * waste ;; define how much potential recyclable plastic is in waste
-  potential
-  unsorted
+olds-own [ acceptance_rate_incentives                  ; acceptance_rate_incentives describes how well households react to incentives (cannot be influenced by incentives)
+  perception_recycling                                 ; describes how important recycling is perceived by the household  (can be influenced by incentives)
+  knowledge_recycling                                  ; describes to what extend households are educated on how to recycle (can be influenced by incentives)
+  recycling_rate                                       ; the recycling_rate is an equation derived from perception and knowledge
+  presorted                                            ; recycling rate * pre factor (== decide how much recplastic is in waste) * waste ;; define how much potential recyclable plastic is in waste
+  potential                                            ; Decision  factor for a specified incentive. Calculated potential of an specified incentive
+  unsorted                                             ; waste flow of waste - presordted
+  waste_base                                           ; Base value for waste production
+  waste                                                ; Waste produced
 ]
 singles-own [ acceptance_rate_incentives
   perception_recycling
@@ -25,6 +26,8 @@ singles-own [ acceptance_rate_incentives
   presorted
   potential
   unsorted
+  waste_base
+  waste
 ]
 couples-own [ acceptance_rate_incentives
   perception_recycling
@@ -33,6 +36,8 @@ couples-own [ acceptance_rate_incentives
   presorted
   potential
   unsorted
+  waste_base
+  waste
 ]
 families-own [ acceptance_rate_incentives
   perception_recycling
@@ -41,104 +46,159 @@ families-own [ acceptance_rate_incentives
   presorted
   potential
   unsorted
+  waste_base
+  waste
 ]
-rec_companies-own [ postsorting_presorted
-  recycling_process_presorted
-  postsorting_unsorted
-  recycling_process_unsorted
-  technology_unsorted
+rec_companies-own [ postsorting_presorted              ; presorted wasteflow after postsorting
+  recycling_process_presorted                          ; presorted wasteflow after recycling
+  postsorting_unsorted                                 ; unsorted wasteflow after postsorting
+  recycling_process_unsorted                           ; unsorted wasteflow after recycling
+  technology_unsorted                                  ;
   technology_presorted
-  contract
-  money
   presorted
   unsorted
-  recycling_rate
+  recycling_rate                                       ; Recycling rate of the rec_company
   input
   capacity
   contract
   contract_capacity
   average_technology
   presorting_base
-  postsorting_base
+  unsorting_base
+  waste
 ]
 
 to setup
   clear-all
+  setup_patches
+  create-municipalities 1 [
+    set color pink
+    set size 3
+    set shape "mun"
+    set Budget (number_old + number_single + number_family + number_couple ) * 100 ; houshold dependent budget calculation
+  ]
+  setup-rec_companies
   create-olds number_old [
     set color blue
     set size 1
     set shape "elderly"
-    set knowledge_recycling 20                                                                                                                              ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
-    set perception_recycling 10
+    set knowledge_recycling Knowledge_olds                                                                                                                              ; I think it is better if we split up the knowledge and perception to random numbers for all the elderlies to random values between x and y
+    set perception_recycling Perception_olds
+    set waste_base 36
     set acceptance_rate_incentives Acceptance_rate_Incentives_olds / 100
-
-
+    move-to one-of patches with [ pcolor = grey]
   ]
     create-singles number_single [
     set color green
     set size 1
     set shape "person"
-    set knowledge_recycling 30
-    set perception_recycling 50
+    set knowledge_recycling Knowledge_singles
+    set perception_recycling Perception_singles
+    set waste_base 38
     set acceptance_rate_incentives Acceptance_rate_Incentives_singles / 100
+    move-to one-of patches with [ pcolor = grey]
   ]
     create-couples number_couple [
     set color yellow
     set size 1
-    set shape "couple"                                                                                                                                   ; 40 is base waste while 1.4 is the factor for couples (hard coded we should change that to a adjustable variable maybe, incentives could lead to a reduction of the factor in general?)
-    set knowledge_recycling 50
-    set perception_recycling 70
+    set shape "couple"
+    set knowledge_recycling Knowledge_couples
+    set perception_recycling Perception_couples
+    set waste_base 42
     set acceptance_rate_incentives Acceptance_rate_Incentives_couples / 100
+    move-to one-of patches with [ pcolor = grey]
   ]
     create-families number_family [
     set color cyan
     set size 1
     set shape "family"
-    layout-circle (sort turtles) max-pxcor - 7
-    set knowledge_recycling 60
-    set perception_recycling 30
+    set knowledge_recycling Knowledge_families
+    set perception_recycling Perception_families
+    set waste_base 44
     set acceptance_rate_incentives Acceptance_rate_Incentives_families / 100
+    move-to one-of patches with [ pcolor = grey]
   ]
-    create-municipalities 1 [
-    set color pink
-    set size 3
-    set shape "mun"
-    set Budget 1000                                                                                                                                        ; new (Was bedeutet new?)
-  ]
-    create-rec_companies number_rec_companies [
-    ;set color red
-    set size 3
-    set shape "rec"
-    setxy  random-pycor -12
-    let one (number_old + number_single + number_couple + number_family) * 42  / number_rec_companies
-    set capacity one-of (range one (one * 1.2))
-    set contract 1 / number_rec_companies
-    set presorting_base 80
-    set postsorting_base 50
-  ]
+
+
+
   set month 0
+
   reset-ticks
 end
-to go
-  if month >= 240 [ stop ]                                                                                                                                 ; sets the time limit of the model to 2 years
-  waste-equation
-  count_months
-  if month mod 12 = 0 [incentivice]                                                                                                                        ; every 12 month incentives are set
-  recycling_rate-equation
-  potential-equation
-;  if month mod 12 = 0 [improve_technology]
-  recycled_plastics-equation
-  rec_companies-equation
-  rec_companies_recycling_rate-equation
-  unsorted-equation
-  if month mod 36 = 0 [reset_contract]
-  if month mod 36 = 0 [contract-equation]
-
-  tick
+to setup-rec_companies
+  ask n-of number_rec_companies ( patches with [pcolor = blue ]) [sprout-rec_companies 1] ; spawn rec company on blue patch
+    ask rec_companies[
+    set size 3
+    set shape "rec"
+    let bridge_setup_rec_companies (number_old + number_single + number_couple + number_family) * 42  / number_rec_companies ;temporary value for capacity calculation
+    set capacity one-of (range bridge_setup_rec_companies (bridge_setup_rec_companies * 1.2))
+    set contract 1 / number_rec_companies
+    set presorting_base one-of (range 70 75)
+    set unsorting_base one-of (range 45 50)
+  ]
+  ask rec_company 1 [set color red]
+  if number_rec_companies >= 2 [ ask rec_company 2 [set color violet]]
+  if number_rec_companies >= 3 [ ask rec_company 3 [set color yellow]]
+  if number_rec_companies = 4 [ ask rec_company 4 [ set color black]]
+end
+to setup_patches ; City design
+  ask patches [
+    if number_rec_companies = 1 [
+      if pxcor = -15 and pycor = 18 [ set pcolor blue]
+  ]
+    if number_rec_companies = 2 [
+      if pxcor = -15 and pycor = 18 [ set pcolor blue]
+      if pxcor = 15 and pycor = -18 [ set pcolor blue]
+  ]
+    if number_rec_companies = 3 [
+      if pxcor = -15 and pycor = 18 [ set pcolor blue]
+      if pxcor = 15 and pycor = -18 [ set pcolor blue]
+      if pxcor = 15 and pycor = 18 [ set pcolor blue]
+  ]
+    if number_rec_companies = 4 [
+      if pxcor = -15 and pycor = 18 [ set pcolor blue]
+      if pxcor = 15 and pycor = -18 [ set pcolor blue]
+      if pxcor = 15 and pycor = 18 [ set pcolor blue]
+      if pxcor = -15 and pycor = -18 [ set pcolor blue]
+  ]]
+  ask patches with [ pycor < 17 and pxcor > -14 and pxcor < 14 and pycor > -17] [ set pcolor grey]
+   ask patches with [ pcolor = black ] [
+    set pcolor 54 + random 2
+  ]
 end
 
+to go
+  ;;General Functions
+  if month >= 240 [ stop ] ;stop simulation after 240 ticks
+  count_months
+
+  ;;Housholds function
+  waste-equation ;
+  recycling_rate-equation
+  recycled_plastics-equation
+  potential-equation
+  make_stupid
+  unsorted-equation
 
 
+
+  ;;Municipailty functions
+  if month mod 12 = 0 [incentivice]
+  if Visualization_Options = "Best_Performance" [if month mod 36 = 1  [visualize]]
+  if Visualization_Options = "Realistic" [if month mod 36 = 1  [visualize_v2]]
+
+  ;;Recycling companies Functions
+  if Improve_technology_Options = "contract_size" [
+    if month mod 12 = 0 [improve_technology_v1]]
+  if Improve_technology_Options = "utilization" [
+    if month mod 12 = 0 [improve_technology_v2]]
+  rec_companies-equation
+  rec_companies_recycling_rate-equation
+  if month mod 36 = 0 [reset_contract]
+  if month mod 36 = 0 [contract-equation]
+  if month < 12 [fix_utilisation]
+  tick
+end
 
 to count_months ; counter of months to count time
   set month month + 1
@@ -146,34 +206,42 @@ end
 
 to waste-equation ; waste equation given depending on time
   ask (turtle-set singles olds families couples ) [
-    set waste 40 - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)
+    set waste waste_base - 0.04 * month - exp(-0.01 * month) * sin( 0.3 * month)
   ]
 end
 
 to incentivice ; Municipalty Incentivice housholds with 2 options: General incentivice all households and specific incentivice only one houshold
   let tickrange one-of (range 1 99)                                                                                                                         ; generate random number between 1 and 99
-
   if tickrange >= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrnage value is larger or equal to the specific_investment value a general inventive is chosen
-    let i one-of (range 1 4)
+    let incentive_general one-of (range 1 4)
+    ask municipalities [ if budget > (number_old + number_single + number_family + number_couple ) * 3 [
     ask (turtle-set olds singles families couples) [
         if perception_recycling < 100 [
-          set perception_recycling perception_recycling + i * acceptance_rate_incentives                                                                    ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
+          set perception_recycling perception_recycling + incentive_general * acceptance_rate_incentives                                                                    ; the perception_recycling factor of one of the agentsets is increased by a random value between 1 and 4
         if knowledge_recycling < 100 [
-          set knowledge_recycling knowledge_recycling + i * acceptance_rate_incentives                                                                      ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
-  ]]]]
+          set knowledge_recycling knowledge_recycling + incentive_general * acceptance_rate_incentives                                                                      ; the knowledge_recycling factor of one of the agentsets is increased by a random value between 1 and 4
+  ]]]
+      set budget budget - (number_old + number_single + number_family + number_couple ) * 3]]]
 
   if tickrange <= Specified_Investment [                                                                                                                    ;specified_investment is a ratio of specified and general incentives, if the random tickrange value is smaller or equal to the specific_investment value a specific inventive is chosen which means just the agentset with the lowest recycling rate will be targeted for incentives
-    let j one-of (range 5 15)
-    ask (turtle-set olds singles families couples) with-max [ potential ]  [
+    let incentive_individual one-of (range 5 15)
+    ask municipalities [ if budget > count (turtle-set olds singles families couples) with-max [ potential ] * 25 [
+    ask (turtle-set olds singles families couples) with-max [ potential ] [
         if perception_recycling < 100 [
-            set perception_recycling perception_recycling + j * acceptance_rate_incentives
+            set perception_recycling perception_recycling + incentive_individual * acceptance_rate_incentives
         if knowledge_recycling < 100 [
-            set knowledge_recycling knowledge_recycling + j * acceptance_rate_incentives
-
-  ]]]]
+            set knowledge_recycling knowledge_recycling + incentive_individual * acceptance_rate_incentives
+  ]]]
   ask (turtle-set singles olds families couples ) [
     if perception_recycling > 100 [set perception_recycling 100]
     if knowledge_recycling > 100 [set knowledge_recycling 100 ]
+  ]
+      set budget budget - count (turtle-set olds singles families couples) with-max [ potential ] * 25]]]
+end
+
+to make_stupid ;houshold forget knowledge and perception
+  ask (turtle-set singles olds families couples) [
+    set perception_recycling perception_recycling - 0.1
   ]
 end
 
@@ -213,10 +281,14 @@ end
 to rec_companies-equation ; simulate the recycling facilities and return average technology
   let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
   let recycling_process_presorted_random one-of (range 70 85)
-  ask rec_companies [
+  ask rec_companies [        ;average technology calculation
+    if month mod 36 = 0 [
+     set average_technology average_technology / 36
+  ]]
+  ask rec_companies [            ;presorted processing
     set presorted sumofpresorted * contract
-    set technology_presorted presorting_base + one-of (range -10 10)
-    ;if technology_presorted > 100 [ set technology_presorted 100 ]
+    set technology_presorted presorting_base + one-of (range -5 5)
+    if technology_presorted > 100 [ set technology_presorted 100 ]
     set postsorting_presorted technology_presorted / 100 * presorted
     set recycling_process_presorted recycling_process_presorted_random / 100 * postsorting_presorted
   ]
@@ -224,28 +296,23 @@ to rec_companies-equation ; simulate the recycling facilities and return average
   ;restlichen % des plastics im waste berechnen
   let sumofwaste sum [ waste ] of (turtle-set singles olds families couples )
   let plastic_in_unsorted ((Amount_recycable_plastic / 100 * sumofwaste - sumofpresorted) / (sumofwaste - sumofpresorted))
-  print plastic_in_unsorted
   ;
   let recycling_process_unsorted_random one-of (range 55 70)
-  ask rec_companies [
+  ask rec_companies [           ; unsorted processing
     set unsorted sumofunsorted * contract
-    set technology_unsorted postsorting_base + one-of (range -10 10)
-   ; if technology_unsorted > 100 [set technology_unsorted 100]
+    set technology_unsorted unsorting_base + one-of (range -10 10)
+    if technology_unsorted > 100 [set technology_unsorted 100]
     set postsorting_unsorted technology_unsorted / 100 * unsorted * plastic_in_unsorted
     set recycling_process_unsorted recycling_process_unsorted_random / 100 * postsorting_unsorted
     ]
-  ask rec_companies with [recycling_rate != 0 ] [
-    set average_technology average_technology + 0.5 * technology_presorted / 100 + 0.5 * technology_presorted / 100  ;; replace 0,5 with procent of processed type of waste
+  ask rec_companies with [presorted != 0 ] [
+    set average_technology average_technology + (presorted / (presorted + unsorted)) * technology_presorted / 100 + (unsorted / (presorted + unsorted)) * technology_unsorted / 100  ;; replace 0,5 with procent of processed type of waste
   ]
-  ask rec_companies [
-    if month mod 36 = 0 [
-     set average_technology average_technology / 36
-  ]]
+
 end
 
 to rec_companies_recycling_rate-equation ; calculate the recycling rate of each recycling company and determine the variable input = unsorted waste
   let sumofwaste sum [ waste ] of (turtle-set singles olds families couples )
-
   let sumofpresorted sum [ presorted ] of (turtle-set singles olds families couples )
   ask rec_companies [
     if (presorted + unsorted) = 0 [
@@ -255,18 +322,17 @@ to rec_companies_recycling_rate-equation ; calculate the recycling rate of each 
     set recycling_rate (recycling_process_unsorted + recycling_process_presorted) / (presorted + unsorted)
     ]
   ]
-
+  ask rec_companies [ if recycling_rate = 0 [die]]
  ask rec_companies [
    set input sumofwaste - sumofpresorted
   ]
 end
 
-to contract-equation
+to contract-equation ;give contracts every 3 years
   let sumofwaste sum [waste] of (turtle-set singles olds families couples )
   let sumofcontract_capacity sum [contract_capacity] of rec_companies
   while [sumofwaste > sumofcontract_capacity] [
     let companies_list rec_companies with [contract_capacity = 0]
-    ;print companies_list
     ask companies_list with-max[average_technology] [
         if capacity <= ( sumofwaste - sumofcontract_capacity ) [
           set contract_capacity capacity
@@ -290,36 +356,266 @@ to reset_contract ;reset the assigned capacity of ech recycling company
   ]
 end
 
-to improve_technology
-  ask rec_companies[
-    if contract_capacity / capacity = 1 [
-      set capacity capacity * (1 + one-of (range 5 15 ) / 100)
-      set presorting_base presorting_base + one-of (range 0 2)
-      set postsorting_base postsorting_base + one-of (range 0 2)
-    ]
-    if (contract_capacity / capacity) < 1 and (contract_capacity / capacity) >= 0.75 [
-      set capacity capacity * (1 + one-of (range 0 10 ) / 100)
-      set presorting_base presorting_base + one-of (range 0 3)
-      set postsorting_base postsorting_base + one-of (range 0 3)
-    ]
-    if (contract_capacity / capacity) < 0.75 and (contract_capacity / capacity) >= 0.25 [
-      set capacity capacity * ( 1 - one-of (range 5 10 ) / 100)
-      set presorting_base presorting_base + one-of (range 1 4)
-      set postsorting_base postsorting_base + one-of (range 1 4)
-    ]
-      if (contract_capacity / capacity) < 0.25 [
-      set capacity capacity * ( 1 - one-of (range 10 15 ) / 100)
-      set presorting_base presorting_base + one-of (range 2 4)
-      set postsorting_base postsorting_base + one-of (range 2 4)
-    ]
+to improve_technology_v1 ;improve by contract size
+  ask rec_companies with-max [contract] [
+      set capacity capacity * ( 1 + one-of (range 5 10) / 100)
+      set presorting_base presorting_base - one-of (range 0 2)
+      set unsorting_base unsorting_base - one-of (range 0 2)
   ]
+  if count rec_companies > 1[ ask rec_companies with-min [contract] [
+      set capacity capacity * ( 1 - one-of (range 0 5) / 100)
+      set presorting_base presorting_base + one-of (range 2 4)
+      set unsorting_base unsorting_base + one-of (range 2 4)
+  ]]
+  ask rec_companies [
+    set capacity capacity * ( 1 + one-of (range 0 3) / 100)
+      set presorting_base presorting_base + one-of (range 0 2)
+      set unsorting_base unsorting_base + one-of (range 0 2)
+  ]
+  ask rec_companies [ if presorting_base > 100 [set presorting_base 100]]
+end
+
+to improve_technology_v2 ;improve by utilization
+  ask rec_companies with-max [contract_capacity / capacity] [
+      set capacity capacity * ( 1 + one-of (range 5 10) / 100)
+      set presorting_base presorting_base - one-of (range 0 2)
+      set unsorting_base unsorting_base - one-of (range 0 2)
+  ]
+  if count rec_companies > 1[ ask rec_companies with-min [contract_capacity / capacity] [
+      set capacity capacity * ( 1 - one-of (range 0 5) / 100)
+      set presorting_base presorting_base + one-of (range 2 4)
+      set unsorting_base unsorting_base + one-of (range 2 4)
+  ]]
+  ask rec_companies [
+    set capacity capacity * ( 1 + one-of (range 0 3) / 100)
+      set presorting_base presorting_base + one-of (range 0 2)
+      set unsorting_base unsorting_base + one-of (range 0 2)
+  ]
+  ask rec_companies [ if presorting_base > 100 [set presorting_base 100]]
+end
+
+to fix_utilisation ;for first year so that there is a realistic value
+  ask rec_companies [
+    set contract_capacity presorted + unsorted]
+end
+
+to visualize ; Best performance i guess
+  ask patches with [pcolor = (red + 1) or pcolor = (violet + 1) or pcolor = (yellow + 2) or pcolor = (black + 3)] [ set pcolor grey]
+  let nenner count patches with [pcolor = grey]
+  let area1 0
+  let area2 0
+  let area3 0
+  let area4 0
+
+  if number_rec_companies = 1 [
+    set area1 round ([contract] of rec_company 1 * nenner)
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+  ]
+  if number_rec_companies = 2 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    while [area1 + area2 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]]
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+    ask n-of area2 patches with [pcolor = grey] [set pcolor violet + 1 ]
+  ]
+
+  if number_rec_companies = 3 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    if rec_company 3 != nobody [set area3 round ([contract] of rec_company 3 * nenner)]
+    while [area1 + area2 + area3 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]]
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+    ask n-of area2 patches with [pcolor = grey] [set pcolor violet + 1 ]
+    ask n-of area3 patches with [pcolor = grey] [set pcolor yellow + 2]
+  ]
+  if number_rec_companies = 4 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    if rec_company 3 != nobody [set area3 round ([contract] of rec_company 3 * nenner)]
+    if rec_company 4 != nobody [set area4 round ([contract] of rec_company 4 * nenner)]
+    while [area1 + area2 + area3 + area4 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]
+      if area4 != 0 [set area4 area4 - 1]]
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+    ask n-of area2 patches with [pcolor = grey] [set pcolor violet + 1 ]
+    ask n-of area3 patches with [pcolor = grey] [set pcolor yellow + 2]
+    ask n-of area4 patches with [pcolor = grey] [set pcolor black + 3]
+  ]
+end
+
+to visualize_v2 ; The most realistic one
+  ask patches with [pcolor = (red + 1) or pcolor = (violet + 1) or pcolor = (yellow + 2) or pcolor = (black + 3)] [ set pcolor grey]
+  let nenner count patches with [pcolor = grey]
+  let area1 0
+  let area2 0
+  let area3 0
+  let area4 0
+  let redcheck count patches with [pcolor = red + 1]
+  let violetcheck count patches with [pcolor = violet + 1]
+  let yellowcheck count patches with [pcolor = yellow + 2]
+  let blackcheck count patches with [pcolor = black + 3]
+
+  if number_rec_companies = 1 [
+    set area1 round ([contract] of rec_company 1 * nenner)
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+  ]
+  if number_rec_companies = 2 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    while [area1 + area2 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]]
+    while [redcheck != area1] [
+      let redlist patches with [pcolor = grey]
+      ask n-of 1 redlist with-min [distance rec_company 1] [ set pcolor red + 1]
+      set redlist patches with [pcolor = grey]
+      set redcheck count patches with [pcolor = red + 1]
+  ]
+    while [violetcheck != area2] [
+      let violetlist patches with [pcolor = grey]
+      ask n-of 1 violetlist with-min [distance rec_company 2] [ set pcolor violet + 1]
+      set violetlist patches with [pcolor = grey]
+      set violetcheck count patches with [pcolor = violet + 1]
+]]
+
+  if number_rec_companies = 3 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    if rec_company 3 != nobody [set area3 round ([contract] of rec_company 3 * nenner)]
+    while [area1 + area2 + area3 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]]
+  while [redcheck != area1] [
+    let redlist patches with [pcolor = grey]
+      ask n-of 1 redlist with-min [distance rec_company 1] [ set pcolor red + 1]
+    set redlist patches with [pcolor = grey]
+    set redcheck count patches with [pcolor = red + 1]
+  ]
+  while [violetcheck != area2] [
+    let violetlist patches with [pcolor = grey]
+    ask n-of 1 violetlist with-min [distance rec_company 2] [ set pcolor violet + 1]
+    set violetlist patches with [pcolor = grey]
+    set violetcheck count patches with [pcolor = violet + 1]
+  ]
+    while [yellowcheck != area3] [
+    let yellowlist patches with [pcolor = grey]
+    ask n-of 1 yellowlist with-min [distance rec_company 3] [ set pcolor yellow + 2]
+    set yellowlist patches with [pcolor = grey]
+    set yellowcheck count patches with [pcolor = yellow + 2]
+  ]]
+
+  if number_rec_companies = 4 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    if rec_company 3 != nobody [set area3 round ([contract] of rec_company 3 * nenner)]
+    if rec_company 4 != nobody [set area4 round ([contract] of rec_company 4 * nenner)]
+    while [area1 + area2 + area3 + area4 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]
+      if area4 != 0 [set area4 area4 - 1]]
+    while [redcheck != area1] [
+      let redlist patches with [pcolor = grey]
+      ask n-of 1 redlist with-min [distance rec_company 1] [ set pcolor red + 1]
+        set redlist patches with [pcolor = grey]
+        set redcheck count patches with [pcolor = red + 1]
+  ]
+      while [violetcheck != area2] [
+        let violetlist patches with [pcolor = grey]
+        ask n-of 1 violetlist with-min [distance rec_company 2] [ set pcolor violet + 1]
+        set violetlist patches with [pcolor = grey]
+        set violetcheck count patches with [pcolor = violet + 1]
+  ]
+      while [yellowcheck != area3] [
+        let yellowlist patches with [pcolor = grey]
+        ask n-of 1 yellowlist with-min [distance rec_company 3] [ set pcolor yellow + 2]
+        set yellowlist patches with [pcolor = grey]
+        set yellowcheck count patches with [pcolor = yellow + 2]
+  ]
+          while [blackcheck != area4] [
+        let blacklist patches with [pcolor = grey]
+        ask n-of 1 blacklist with-min [distance rec_company 4] [ set pcolor black + 3]
+        set blacklist patches with [pcolor = grey]
+        set blackcheck count patches with [pcolor = black + 3]
+  ]]
+end
+
+to visualize_v3 ; looks like a circle
+  ask patches with [pcolor = (red + 1) or pcolor = (violet + 1) or pcolor = (yellow + 2) or pcolor = (black + 3)] [ set pcolor grey]
+  let nenner count patches with [pcolor = grey]
+  let area1 0
+  let area2 0
+  let area3 0
+  let area4 0
+  let redcheck count patches with [pcolor = red + 1]
+  let violetcheck count patches with [pcolor = violet + 1]
+  let yellowcheck count patches with [pcolor = yellow + 2]
+
+  if number_rec_companies = 1 [
+    set area1 round ([contract] of rec_company 1 * nenner)
+    ask n-of area1 patches with [pcolor = grey] [set pcolor red + 1]
+  ]
+  if number_rec_companies = 2 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    while [area1 + area2 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]]
+  while [redcheck != area1] [
+    let redlist patches with [pcolor = grey]
+    ask n-of 1 redlist with-min [distance turtle 0] [ set pcolor red + 1
+    show distance rec_company 1]
+    set redlist patches with [pcolor = grey]
+    set redcheck count patches with [pcolor = red + 1]
+  ]
+  while [violetcheck != area2] [
+    let violetlist patches with [pcolor = grey]
+    ask n-of 1 violetlist with-min [distance turtle 0] [ set pcolor violet + 1]
+    set violetlist patches with [pcolor = grey]
+    set violetcheck count patches with [pcolor = violet + 1]
+  ]]
+
+  if number_rec_companies = 3 [
+    if rec_company 1 != nobody [ set area1 round ([contract] of rec_company 1 * nenner)]
+    if rec_company 2 != nobody [set area2 round ([contract] of rec_company 2 * nenner)]
+    if rec_company 3 != nobody [set area3 round ([contract] of rec_company 3 * nenner)]
+    while [area1 + area2 + area3 > nenner] [
+      if area1 != 0 [set area1 area1 - 1]
+      if area2 != 0 [set area2 area2 - 1]
+      if area3 != 0 [set area3 area3 - 1]]
+  while [redcheck != area1] [
+    let redlist patches with [pcolor = grey]
+      ask n-of 1 redlist with-min [distance turtle 0] [ set pcolor red + 1]
+    set redlist patches with [pcolor = grey]
+    set redcheck count patches with [pcolor = red + 1]
+  ]
+  while [violetcheck != area2] [
+    let violetlist patches with [pcolor = grey]
+    ask n-of 1 violetlist with-min [distance turtle 0] [ set pcolor violet + 1]
+    set violetlist patches with [pcolor = grey]
+    set violetcheck count patches with [pcolor = violet + 1]
+  ]
+  while [yellowcheck != area3] [
+    let yellowlist patches with [pcolor = grey]
+        ask n-of 1 yellowlist with-min [distance turtle 0] [ set pcolor yellow + 2]
+    set yellowlist patches with [pcolor = grey]
+    set yellowcheck count patches with [pcolor = yellow + 2]
+      ]]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-283
-15
-720
-531
+284
+70
+721
+586
 -1
 -1
 13.0
@@ -329,8 +625,8 @@ GRAPHICS-WINDOW
 1
 1
 0
-1
-1
+0
+0
 1
 -16
 16
@@ -343,10 +639,10 @@ ticks
 30.0
 
 BUTTON
-13
-28
-76
-61
+34
+17
+97
+50
 NIL
 setup
 NIL
@@ -360,21 +656,21 @@ NIL
 1
 
 INPUTBOX
-5
-276
-96
-336
+8
+112
+136
+172
 number_old
-100.0
+50.0
 1
 0
 Number
 
 INPUTBOX
-101
-276
-204
-336
+148
+112
+273
+172
 number_single
 50.0
 1
@@ -382,47 +678,47 @@ number_single
 Number
 
 INPUTBOX
-110
-338
-215
-398
+147
+183
+272
+243
 number_family
-60.0
+50.0
 1
 0
 Number
 
 INPUTBOX
-2
-339
-110
-399
+9
+183
+136
+243
 number_couple
-30.0
+50.0
 1
 0
 Number
 
 SLIDER
-18
-234
-191
-267
+11
+396
+273
+429
 number_rec_companies
 number_rec_companies
 1
-10
-2.0
+4
+4.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-15
-69
-90
-102
+109
+17
+173
+51
 go once
 go
 NIL
@@ -436,10 +732,10 @@ NIL
 1
 
 BUTTON
-109
-70
-172
-103
+184
+17
+247
+50
 go
 go
 T
@@ -453,28 +749,28 @@ NIL
 1
 
 SLIDER
-352
-549
-538
-582
+9
+250
+272
+283
 Specified_Investment
 Specified_Investment
 0
 100
-90.0
+100.0
 10
 1
 NIL
 HORIZONTAL
 
 PLOT
-673
-29
-942
-268
-Presorting rate HH
-Ticks
-NIL
+1134
+72
+1764
+589
+Plastic Sorting Rates of Housholds and Recycling Rate of City
+Ticks [Month]
+Rates [%]
 0.0
 240.0
 0.0
@@ -483,57 +779,56 @@ true
 true
 "" ""
 PENS
-"singles" 1.0 0 -13345367 true "" "plot mean [recycling_rate] of singles"
-"families" 1.0 0 -1184463 true "" "plot mean [recycling_rate] of families"
-"couples" 1.0 0 -2674135 true "" "plot mean [recycling_rate] of couples"
-"olds" 1.0 0 -13840069 true "" "plot mean [recycling_rate] of olds "
-"Recycling rate city" 1.0 0 -955883 true "" "if month > 1 [plot mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100 ]"
-"pen-5" 1.0 0 -7500403 true "" ""
+"Singles" 1.0 0 -10899396 true "" "plot mean [recycling_rate] of singles"
+"Families" 1.0 0 -11221820 true "" "plot mean [recycling_rate] of families"
+"Couples" 1.0 0 -1184463 true "" "plot mean [recycling_rate] of couples"
+"Olds" 1.0 0 -13345367 true "" "plot mean [recycling_rate] of olds "
+"Recycling Rate City Regarding Waste" 1.0 0 -9276814 true "" "if month > 1 [plot mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100 ]"
+"Recycling Rate City Regarding Plastics" 1.0 0 -16777216 true "" "if month > 1 [plot (sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100]"
 
 PLOT
-1280
-22
-1718
-388
-Presorted plastic HH
-ticks
-Waste and Recycled waste 
+732
+72
+1124
+587
+Waste of City
+Ticks [Month]
+Amount of Good [KG]
 0.0
-240.0
+241.0
 0.0
 10.0
 true
 true
 "" ""
 PENS
-"presorted old" 1.0 0 -5509967 true "" "plot mean [presorted] of olds * count olds"
-"waste old" 1.0 0 -13840069 true "" "plot  mean [waste] of olds * count olds"
-"potential recycling olds" 1.0 0 -14333415 true "" "plot  mean [waste] of olds * count olds * Amount_recycable_plastic / 100"
-"unsorted old" 1.0 0 -6565750 true "" "plot  mean [unsorted] of olds * count olds * Amount_recycable_plastic / 100"
+"Waste of City" 1.0 0 -16777216 true "" "plot  sum [waste] of (turtle-set olds singles families couples)"
+"Plastic of City" 1.0 1 -9276814 true "" "plot  sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100"
+"Recycled Plastic of City" 1.0 1 -14333415 true "" "plot  sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies"
 
 SLIDER
-353
-593
-563
-626
+10
+291
+272
+324
 Amount_recycable_plastic
 Amount_recycable_plastic
 0
 100
-60.0
+30.0
 10
 1
 %
 HORIZONTAL
 
 PLOT
-1282
-390
-1718
-630
-Absolute waste that could be recycled
-ticks
-Absolute waste that could be recycled
+0
+822
+702
+1124
+Highest Line Gets the INDIVIDUAL Incentive
+Ticks [Month]
+Absolute Plastic that could be recycled [Kg]
 0.0
 240.0
 0.0
@@ -542,33 +837,63 @@ true
 true
 "" ""
 PENS
-"olds" 1.0 0 -13840069 true "" "plot mean [waste] of olds * count olds * Amount_recycable_plastic / 100 -  mean [presorted] of olds * count olds"
-"singles" 1.0 0 -13345367 true "" "plot mean [waste] of singles * count singles * Amount_recycable_plastic / 100 -  mean [presorted] of singles * count singles"
-"families" 1.0 0 -1184463 true "" "plot mean [waste] of families * count families * Amount_recycable_plastic / 100 -  mean [presorted] of families * count families"
-"couples" 1.0 0 -2674135 true "" "plot mean [waste] of couples * count couples * Amount_recycable_plastic / 100 -  mean [presorted] of couples * count couples"
+"olds" 1.0 0 -13345367 true "" "plot mean [waste] of olds * count olds * Amount_recycable_plastic / 100 -  mean [presorted] of olds * count olds"
+"singles" 1.0 0 -10899396 true "" "plot mean [waste] of singles * count singles * Amount_recycable_plastic / 100 -  mean [presorted] of singles * count singles"
+"families" 1.0 0 -11221820 true "" "plot mean [waste] of families * count families * Amount_recycable_plastic / 100 -  mean [presorted] of families * count families"
+"couples" 1.0 0 -1184463 true "" "plot mean [waste] of couples * count couples * Amount_recycable_plastic / 100 -  mean [presorted] of couples * count couples"
 
 SLIDER
-0
-412
-239
-445
+105
+643
+331
+676
 Acceptance_rate_Incentives_olds
 Acceptance_rate_Incentives_olds
 0
 100
-100.0
+95.0
 10
 1
 NIL
 HORIZONTAL
 
 SLIDER
+105
+683
+333
+716
+Acceptance_rate_Incentives_singles
+Acceptance_rate_Incentives_singles
 0
-453
-253
-486
-Acceptance_rate_Incentives_singles
-Acceptance_rate_Incentives_singles
+100
+40.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+105
+726
+333
+759
+Acceptance_rate_Incentives_families
+Acceptance_rate_Incentives_families
+0
+100
+80.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+105
+766
+336
+799
+Acceptance_rate_Incentives_couples
+Acceptance_rate_Incentives_couples
 0
 100
 70.0
@@ -577,44 +902,14 @@ Acceptance_rate_Incentives_singles
 NIL
 HORIZONTAL
 
-SLIDER
-0
-496
-239
-529
-Acceptance_rate_Incentives_families
-Acceptance_rate_Incentives_families
-0
-100
-100.0
-10
-1
-NIL
-HORIZONTAL
-
-SLIDER
-0
-536
-258
-569
-Acceptance_rate_Incentives_couples
-Acceptance_rate_Incentives_couples
-0
-100
-100.0
-10
-1
-NIL
-HORIZONTAL
-
 PLOT
-941
-15
-1286
-374
-Recycling Companies Presorted Process
-ticks
-Waste and Plastic
+1772
+75
+2154
+593
+Recycling Companies Process with Presorted Waste
+Ticks [Month]
+Plastics [Kg]
 0.0
 240.0
 0.0
@@ -624,17 +919,17 @@ true
 "" ""
 PENS
 "Plastic input" 1.0 0 -4539718 true "" "plot mean [presorted] of rec_companies"
-"postsorting Output" 1.0 0 -9276814 true "" "plot mean [postsorting_presorted] of rec_companies"
+"Postsorting Output" 1.0 0 -9276814 true "" "plot mean [postsorting_presorted] of rec_companies"
 "Recycling Outpput" 1.0 0 -16777216 true "" "plot mean [recycling_process_presorted] of rec_companies"
 
 PLOT
-943
-370
-1279
-705
-Recycling companies Unsorted Process
-Ticks
-Waste and Plastic
+1417
+600
+1737
+857
+Capacity of Recycling Companies
+Ticks [Month]
+Capacity [Kg]
 0.0
 240.0
 0.0
@@ -643,184 +938,344 @@ true
 true
 "" ""
 PENS
-"unsorted Plastic input " 1.0 0 -4539718 true "" "plot mean [unsorted] of rec_companies"
-"postsorting output" 1.0 0 -11053225 true "" "plot mean [postsorting_unsorted] of rec_companies"
-"recycling output" 1.0 0 -16777216 true "" "plot mean [recycling_process_unsorted] of rec_companies"
-"unsorted waste input" 1.0 0 -6759204 true "" "plot mean [input] of rec_companies"
+"pen-0" 1.0 0 -7500403 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (capacity)\n  ]"
 
 PLOT
-1286
+734
+600
+1079
+857
+Capacity Utilisation [%] After Each Contract
+Ticks [Months]
+Capacity Utilisation [%]
+0.0
+240.0
+0.0
+100.0
+true
+true
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n if month mod 36 = 0 or month = 1[\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract_capacity / capacity * 100)\n  ]]"
+
+CHOOSER
+11
+438
+272
+483
+Improve_Technology_Options
+Improve_Technology_Options
+"utilization" "contract_size"
+0
+
+MONITOR
+433
 15
-1665
-203
-plot 1
-NIL
-NIL
+568
+60
+Budget of municipality
+mean [budget] of municipalities
+17
+1
+11
+
+MONITOR
+930
+15
+1124
+60
+Recycling Rate Regarding Plastics
+(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100
+1
+1
+11
+
+TEXTBOX
+14
+357
+264
+386
+Setup Recycling Companies
+16
 0.0
-10.0
+1
+
+TEXTBOX
+10
+77
+234
+112
+Setup City
+16
 0.0
+1
+
+TEXTBOX
+5
+613
+264
+653
+Setup Households in Detail ↓
+16
+0.0
+1
+
+MONITOR
+733
+16
+919
+61
+Recycling Rate Regarding Waste
+mean [recycling_rate] of rec_companies with [recycling_rate != 0] * 100
+1
+1
+11
+
+SLIDER
+346
+643
+519
+676
+Perception_olds
+Perception_olds
+0
+100
 10.0
-true
-true
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (recycling_rate * 100)\n]"
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+529
+643
+702
+676
+Knowledge_olds
+Knowledge_olds
+0
+100
+20.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+345
+685
+518
+718
+Perception_singles
+Perception_singles
+0
+100
+50.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+529
+685
+702
+718
+Knowledge_singles
+Knowledge_singles
+0
+100
+30.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+343
+726
+516
+759
+Perception_families
+Perception_families
+0
+100
+50.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+530
+726
+703
+759
+Knowledge_families
+Knowledge_families
+0
+100
+60.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+530
+766
+703
+799
+Knowledge_couples
+Knowledge_couples
+0
+100
+60.0
+10
+1
+NIL
+HORIZONTAL
+
+SLIDER
+345
+766
+518
+799
+Perception_couples
+Perception_couples
+0
+100
+70.0
+10
+1
+NIL
+HORIZONTAL
+
+TEXTBOX
+10
+654
+75
+674
+Olds
+16
+0.0
+1
+
+TEXTBOX
+10
+691
+81
+711
+Singles
+16
+0.0
+1
+
+TEXTBOX
+8
+733
+72
+753
+Families
+16
+0.0
+1
+
+TEXTBOX
+9
+773
+78
+793
+Couples
+16
+0.0
+1
 
 PLOT
-585
-542
-1126
-787
-plot 2
-NIL
-NIL
+735
+865
+1079
+1127
+Company Assignment to % of City 
+Ticks [Month]
+Contract Volume [% of City]
 0.0
 240.0
 0.0
-10.0
+100.0
 true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (unsorted)\n  ]"
-"rec Comp" 1.0 0 -7500403 true "" "plot sum [unsorted] of rec_companies"
-"hh" 1.0 0 -2674135 true "" "plot sum [unsorted] of (turtle-set singles olds couples families)"
+"default" 1.0 0 -16777216 true "" "ask rec_companies [\n if month mod 36 = 0 or month = 1[\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract * 100)\n  ]]"
 
 PLOT
-808
-388
-1331
-827
-Contarct colume
-NIL
-NIL
+1087
+600
+1411
+857
+Presorting Technology
+Ticks [Month]
+Success Rate for Presorted Waste [%]
 0.0
 240.0
 0.0
-1.0
+100.0
 true
 true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (contract_capacity / capacity)\n  ]"
+"Recycling Company:" 1.0 0 -1 true "" "  ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (technology_presorted)\n  ]"
 
 PLOT
-1455
-706
-1655
-856
-plot 3
-NIL
-NIL
+2159
+75
+2507
+595
+Recycling Companies Process with Unsorted Waste
+Ticks [Month]
+Waste and Plastics [Kg]
 0.0
 10.0
 0.0
 10.0
 true
-false
+true
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks capacity\n  ]"
+"Unsorted Waste Input" 1.0 0 -3026479 true "" "plot mean [unsorted] of rec_companies"
+"Postsorting Output" 1.0 0 -7500403 true "" "plot mean [postsorting_unsorted] of rec_companies"
+"Recycling Output" 1.0 0 -16777216 true "" "plot mean [recycling_process_unsorted] of rec_companies"
+
+PLOT
+1087
+865
+1407
+1127
+Technology Unsorted
+Ticks [Month]
+Success Rate for Unsorted Waste [%]
+0.0
+240.0
+0.0
+100.0
+true
+true
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "  ask rec_companies [\n  create-temporary-plot-pen (word who)\n  set-plot-pen-color color\n  plotxy ticks (technology_unsorted)\n  ]"
+
+CHOOSER
+12
+495
+272
+540
+Visualization_Options
+Visualization_Options
+"Realistic" "Best_Performance" "none"
+0
 
 @#$#@#$#@
-Must have
-
-Data analysis --> reflektieren Assumptions EInfluss. Komplett sein
-
-
-Was kommt moch rein
-
-budget municipality
-technology verbesserung im jahr
-decreasing 
-
-
-Assumptions
-
-
-Households have
--perception_rate: Describes how important recycling is to the household
--knowlege_recycle: Describes the knowledge about how to recycle
--acceptance_rate_incentives: Describes the acceptance of incentives and policies
--recycling_rate: Is the rate of how well the household seperates the trash
-
-recycling_company
-have:
-*color --> property
-*shape --> property
-*technology --> ?
-	*sorting_effeciency
-	*recycling_efficency
-	*capacity
-
-Pesudocode:
-
-Initialization:
-	
-	Create agents (households) and evenly distribute them random in knowledge space
-
-	Create agent (municipality) in (0,0) of the knowledge space
-
-	Create given amount of agents (recycling companies) and place them on a fixed spot
-
-	Create classes for agent (households):
-		old
-		single
-		couple
-		family
-
-	Households own:
-		waste
-		access to collection infrastructure
-		perception for recycling
-		knowledge of how to recycle
-		acceptance rate for incentives
-
-	Municipality own:
-		Budget
-		desity
-		population distribution
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Pseudocode Muncicpality Incentivizing households
-
-
-;;in to go function: stop incentivizing e.g. if knowledge_recycling >= 100
-;; Include decide random as propability slider
-
-
-
-if Budget of Municipality > 0:
-	decide random: inventivize ALL-Agents (1) OR Incentivize SPECIFIC-Agent (2)
-
-(1)    Budget - incentivizing costs x4
-       set knowledge_recycling + random number between  e.g. 0 and 4
-       set perception_recycling + random number between  e.g. 0 and 4
-       set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
-(2)    choose which agent has lowest recycling rate
-       Budget - incentivizing costs x1
-       set knowledge_recycling + random number between  e.g. 0 and 4
-       set perception_recycling + random number between  e.g. 0 and 4
-       set acceptance_rate_incentives + random number between  e.g. 0 and 4 ;; je öfter man incentivized wird desto eher werden die leute aufnahmefähiger ???
-
-
-
-
 @#$#@#$#@
 default
 true
@@ -1225,42 +1680,324 @@ NetLogo 6.2.1
 @#$#@#$#@
 @#$#@#$#@
 <experiments>
-  <experiment name="experiment" repetitions="1" runMetricsEveryStep="true">
+  <experiment name="Sophian vorlage" repetitions="100" runMetricsEveryStep="true">
     <setup>setup</setup>
     <go>go</go>
-    <metric>count turtles</metric>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>sum [technology_presorted * contract] of rec_companies</metric>
+    <metric>sum [technology_unsorted * contract] of rec_companies</metric>
+    <metric>count rec_companies</metric>
+    <metric>[recycling_rate] of olds</metric>
+    <metric>[recycling_rate] of singles</metric>
+    <metric>[recycling_rate] of couples</metric>
+    <metric>[recycling_rate] of families</metric>
     <enumeratedValueSet variable="Amount_recycable_plastic">
-      <value value="60"/>
+      <value value="30"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
-      <value value="70"/>
+      <value value="40"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="number_old">
+      <value value="50"/>
       <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="number_family">
-      <value value="60"/>
+      <value value="50"/>
+      <value value="100"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
-      <value value="100"/>
+      <value value="95"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="50"/>
       <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="1"/>
+      <value value="2"/>
+      <value value="3"/>
+      <value value="4"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;contract_size&quot;"/>
+      <value value="&quot;utilization&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Sophian part 1" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>sum [technology_presorted * contract] of rec_companies</metric>
+    <metric>sum [technology_unsorted * contract] of rec_companies</metric>
+    <metric>count rec_companies</metric>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="number_single">
       <value value="50"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="number_couple">
-      <value value="30"/>
+      <value value="50"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
-      <value value="100"/>
+      <value value="70"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="number_rec_companies">
+      <value value="1"/>
+      <value value="2"/>
+      <value value="3"/>
       <value value="4"/>
     </enumeratedValueSet>
     <enumeratedValueSet variable="Specified_Investment">
-      <value value="90"/>
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;contract_size&quot;"/>
+      <value value="&quot;utilization&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Distribution Test" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>sum [recycling_rate] of olds / count olds</metric>
+    <metric>sum [recycling_rate] of singles / count singles</metric>
+    <metric>sum [recycling_rate] of couples / count couples</metric>
+    <metric>sum [recycling_rate] of families / count families</metric>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;utilization&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="spec investment test" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>sum [recycling_rate] of olds / count olds</metric>
+    <metric>sum [recycling_rate] of singles / count singles</metric>
+    <metric>sum [recycling_rate] of couples / count couples</metric>
+    <metric>sum [recycling_rate] of families / count families</metric>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;utilization&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Bubble old and family" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>sum [recycling_rate] of olds / count olds</metric>
+    <metric>sum [recycling_rate] of singles / count singles</metric>
+    <metric>sum [recycling_rate] of couples / count couples</metric>
+    <metric>sum [recycling_rate] of families / count families</metric>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;utilization&quot;"/>
+    </enumeratedValueSet>
+  </experiment>
+  <experiment name="Bubble couple and singles" repetitions="50" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="240"/>
+    <metric>sum [recycling_rate * contract] of rec_companies</metric>
+    <metric>(sum [recycling_process_presorted + recycling_process_unsorted] of rec_companies) / (sum [waste] of (turtle-set olds singles families couples) * Amount_recycable_plastic / 100) * 100</metric>
+    <metric>sum [recycling_rate] of olds / count olds</metric>
+    <metric>sum [recycling_rate] of singles / count singles</metric>
+    <metric>sum [recycling_rate] of couples / count couples</metric>
+    <metric>sum [recycling_rate] of families / count families</metric>
+    <enumeratedValueSet variable="Amount_recycable_plastic">
+      <value value="30"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_singles">
+      <value value="40"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_old">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_family">
+      <value value="50"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_olds">
+      <value value="95"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_families">
+      <value value="80"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_single">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_couple">
+      <value value="50"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Acceptance_rate_Incentives_couples">
+      <value value="70"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="number_rec_companies">
+      <value value="2"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Specified_Investment">
+      <value value="0"/>
+      <value value="25"/>
+      <value value="50"/>
+      <value value="75"/>
+      <value value="100"/>
+    </enumeratedValueSet>
+    <enumeratedValueSet variable="Improve_Technology_Options">
+      <value value="&quot;utilization&quot;"/>
     </enumeratedValueSet>
   </experiment>
 </experiments>
